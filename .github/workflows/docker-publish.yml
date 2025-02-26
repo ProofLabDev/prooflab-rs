@@ -89,7 +89,15 @@ jobs:
             type=ref,event=pr,suffix=-gpu
             type=semver,pattern={{version}}-gpu
             type=semver,pattern={{major}}.{{minor}}-gpu
-
+      - name: Free disk space
+        run: |
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo apt clean
+          docker system prune -af
+          df -h
       - name: Build and push GPU Docker image
         uses: docker/build-push-action@v5
         with:

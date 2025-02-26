@@ -70,9 +70,9 @@ pub fn prepare_host(
     // Insert output body
     let host_program = host_program.replace(utils::HOST_OUTPUT, output);
 
-    // replace zkRust::write
+    // replace prooflab_io::write
     let host_program = host_program.replace(utils::IO_WRITE, SP1_HOST_WRITE);
-    // replace zkRust::out()
+    // replace prooflab_io::out()
     let host_program = host_program.replace(utils::IO_OUT, SP1_HOST_READ);
 
     // Write to host

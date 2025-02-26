@@ -24,6 +24,8 @@
         "workspaces/sp1/script/Cargo.toml",
         "workspaces/sp1/program/Cargo.toml",
         "workspaces/risc0/host/Cargo.toml",
+        "workspaces/qemu/script/Cargo.toml",
+        "workspaces/qemu/program/Cargo.toml",
         "examples/fibonacci/Cargo.toml",
         "examples/sha/Cargo.toml",
         "examples/regex/Cargo.toml",

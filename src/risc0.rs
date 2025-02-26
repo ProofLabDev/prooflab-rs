@@ -92,13 +92,13 @@ pub fn prepare_host(
         &new_builder,
     );
 
-    // replace zkRust::out()
+    // replace prooflab_io::out()
     let host_program = host_program.replace(utils::IO_OUT, RISC0_IO_OUT);
 
     let mut file = fs::File::create(host_main)?;
     file.write_all(host_program.as_bytes())?;
 
-    utils::remove_lines(host_main, "zk_rust_io::write(")?;
+    utils::remove_lines(host_main, "prooflab_io::write(")?;
     Ok(())
 }
 

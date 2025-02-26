@@ -63,7 +63,7 @@ pub struct ProofArgs {
     #[clap(
         name = "Enables GPU acceleration for proof generation",
         long = "gpu",
-        env = "ZKRUST_GPU"
+        env = "PROOFLAB_GPU"
     )]
     pub gpu: bool,
     #[arg(

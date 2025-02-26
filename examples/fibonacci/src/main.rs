@@ -1,8 +1,8 @@
-use zk_rust_io;
+use prooflab_io;
 
 fn main() {
-    let n: u32 = zk_rust_io::read();
-    zk_rust_io::commit(&n);
+    let n: u32 = prooflab_io::read();
+    prooflab_io::commit(&n);
 
     let mut a: u32 = 0;
     let mut b: u32 = 1;
@@ -13,17 +13,17 @@ fn main() {
         b = c;
     }
 
-    zk_rust_io::commit(&a);
-    zk_rust_io::commit(&b);
+    prooflab_io::commit(&a);
+    prooflab_io::commit(&b);
 }
 
 fn input() {
     let n = 1000u32;
-    zk_rust_io::write(&n);
+    prooflab_io::write(&n);
 }
 
 fn output() {
-    let (n, a, b): (u32, u32, u32) = zk_rust_io::out();
+    let (n, a, b): (u32, u32, u32) = prooflab_io::out();
 
     println!("n: {}", n);
     println!("a: {}", a);

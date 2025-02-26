@@ -3,13 +3,13 @@ use tendermint_light_client_verifier::{
     options::Options, types::LightBlock, ProdVerifier, Verdict, Verifier,
 };
 mod utils;
-use zk_rust_io;
+use prooflab_io;
 
 pub fn main() {
     println!("cycle-tracker-start: io");
     println!("cycle-tracker-start: reading bytes");
-    let encoded_1: Vec<u8> = zk_rust_io::read();
-    let encoded_2: Vec<u8> = zk_rust_io::read();
+    let encoded_1: Vec<u8> = prooflab_io::read();
+    let encoded_2: Vec<u8> = prooflab_io::read();
     println!("cycle-tracker-end: reading bytes");
     println!("first 10 bytes: {:?}", &encoded_1[..10]);
     println!("first 10 bytes: {:?}", &encoded_2[..10]);
@@ -35,8 +35,8 @@ pub fn main() {
     println!("cycle-tracker-end: header hash");
 
     println!("cycle-tracker-start: public input headers");
-    zk_rust_io::commit(&header_hash_1.as_bytes());
-    zk_rust_io::commit(&header_hash_2.as_bytes());
+    prooflab_io::commit(&header_hash_1.as_bytes());
+    prooflab_io::commit(&header_hash_2.as_bytes());
     println!("cycle-tracker-end: public input headers");
 
     println!("cycle-tracker-start: verify");
@@ -57,7 +57,7 @@ pub fn main() {
 
     println!("cycle-tracker-start: public inputs verdict");
     let verdict_encoded = serde_cbor::to_vec(&verdict).unwrap();
-    zk_rust_io::commit(&verdict_encoded.as_slice());
+    prooflab_io::commit(&verdict_encoded.as_slice());
     println!("cycle-tracker-end: public inputs verdict");
 
     match verdict {
@@ -76,8 +76,8 @@ pub fn input() {
     let encoded_1 = serde_cbor::to_vec(&light_block_1).unwrap();
     let encoded_2 = serde_cbor::to_vec(&light_block_2).unwrap();
 
-    zk_rust_io::write(&encoded_1);
-    zk_rust_io::write(&encoded_2);
+    prooflab_io::write(&encoded_1);
+    prooflab_io::write(&encoded_2);
 }
 
 pub fn output() {
@@ -89,7 +89,7 @@ pub fn output() {
     expected_public_values.extend(light_block_2.signed_header.header.hash().as_bytes());
     expected_public_values.extend(serde_cbor::to_vec(&expected_verdict).unwrap());
 
-    let public_inputs: Vec<u8> = zk_rust_io::out();
+    let public_inputs: Vec<u8> = prooflab_io::out();
 
     assert_eq!(public_inputs.as_ref(), expected_public_values);
 }

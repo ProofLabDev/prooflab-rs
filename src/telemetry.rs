@@ -134,7 +134,7 @@ impl TelemetryCollector {
 
         // Extract host metadata from the appropriate host Cargo.toml
         let host_metadata = if let Some(home_dir) = dirs::home_dir() {
-            let home_dir = home_dir.join(".zkRust");
+            let home_dir = home_dir.join(".prooflab");
             let host_toml_path = if proving_system == "SP1" {
                 home_dir.join("workspaces/sp1/script/Cargo.toml")
             } else {

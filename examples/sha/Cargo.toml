@@ -6,6 +6,6 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-zk_rust_io = { git = "https://github.com/yetanotherco/zkRust.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
 sha2 = "0.10.6"
 

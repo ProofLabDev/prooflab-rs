@@ -6,9 +6,9 @@ use sha2::{Digest, Sha256};
 use std::vec;
 
 fn main() {
-    let pk_der: Vec<u8> = zk_rust_io::read();
-    let message: Vec<u8> = zk_rust_io::read();
-    let signature: Vec<u8> = zk_rust_io::read();
+    let pk_der: Vec<u8> = prooflab_io::read();
+    let message: Vec<u8> = prooflab_io::read();
+    let signature: Vec<u8> = prooflab_io::read();
 
     let public_key = RsaPublicKey::from_public_key_der(&pk_der).unwrap();
 
@@ -56,9 +56,9 @@ fn input() {
     let public_key = RsaPublicKey::from_public_key_der(RSA_2048_PUB).unwrap();
     println!("{:?} \n\n{:?}", private_key, public_key);
 
-    zk_rust_io::write(&RSA_2048_PUB);
-    zk_rust_io::write(&message);
-    zk_rust_io::write(&signature);
+    prooflab_io::write(&RSA_2048_PUB);
+    prooflab_io::write(&message);
+    prooflab_io::write(&signature);
 }
 
 fn output() {}

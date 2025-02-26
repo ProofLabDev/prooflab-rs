@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 fn main() {
-    let data_str: String = zk_rust_io::read();
-    let key: String = zk_rust_io::read();
+    let data_str: String = prooflab_io::read();
+    let key: String = prooflab_io::read();
 
     // read custom struct example inputs.
-    let mut old_account_state: Account = zk_rust_io::read();
-    let txs: Vec<Transaction> = zk_rust_io::read();
+    let mut old_account_state: Account = prooflab_io::read();
+    let txs: Vec<Transaction> = prooflab_io::read();
 
     let v: Value = serde_json::from_str(&data_str).unwrap();
     println!("net_worth {:?}", v[key]);
@@ -23,7 +23,7 @@ fn main() {
         }
     }
 
-    zk_rust_io::commit(&new_account_state);
+    prooflab_io::commit(&new_account_state);
 }
 
 fn input() {
@@ -53,14 +53,14 @@ fn input() {
         },
     ];
 
-    zk_rust_io::write(&data_str);
-    zk_rust_io::write(&key);
-    zk_rust_io::write(&account_state);
-    zk_rust_io::write(&txs);
+    prooflab_io::write(&data_str);
+    prooflab_io::write(&key);
+    prooflab_io::write(&account_state);
+    prooflab_io::write(&txs);
 }
 
 fn output() {
-    let account_state: Account = zk_rust_io::out();
+    let account_state: Account = prooflab_io::out();
 
     println!("{}", account_state.balance);
 }

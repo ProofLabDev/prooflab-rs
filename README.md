@@ -1,17 +1,17 @@
-# zkRust
+# prooflab-rs
 
-`zkRust` is a CLI tool to simplify developing zk applications in Rust using zkVM's such as SP1 or Risc0.
+`prooflab-rs` is a CLI tool to simplify developing zk applications in Rust using zkVM's such as SP1 or Risc0.
 
-`zkRust` simplifies the development experience of using zkVM's by abstracting the complexity of using zkVM's from the developer and providing them the choice of which zkVM they would like to develop with.
+`prooflab-rs` simplifies the development experience of using zkVM's by abstracting the complexity of using zkVM's from the developer and providing them the choice of which zkVM they would like to develop with.
 
 ## Installation:
 First make sure [Rust](https://www.rust-lang.org/tools/install) is installed on your machine. 
 
 
-zkRust can also be installed directly by downloading the latest release binaries.
+prooflab-rs can also be installed directly by downloading the latest release binaries.
 
 ```sh
-curl -L https://raw.githubusercontent.com/yetanotherco/zkRust/main/install_zkrust.sh | bash
+curl -L https://raw.githubusercontent.com/ProofLabDev/prooflab-rs/main/install_prooflab.sh | bash
 ```
 
 for local development install the repository dependencies.
@@ -22,19 +22,19 @@ make install
 
 ## Docker
 
-zkRust can also be run in a Docker container. The provided Dockerfile sets up a complete environment with all necessary dependencies.
+prooflab-rs can also be run in a Docker container. The provided Dockerfile sets up a complete environment with all necessary dependencies.
 
 ### Building the Image
 
 ```sh
-docker build -t zkrust .
+docker build -t prooflab-rs .
 ```
 
 ### Running the Container
 
 Basic usage:
 ```sh
-docker run -it zkrust bash
+docker run -it prooflab-rs bash
 ```
 
 For faster builds and better performance, mount the Rust cache directories:
@@ -42,20 +42,20 @@ For faster builds and better performance, mount the Rust cache directories:
 docker run -it \
   -v "$HOME/.cargo/registry:/root/.cargo/registry" \
   -v "$HOME/.cargo/git:/root/.cargo/git" \
-  zkrust bash
+  prooflab-rs bash
 ```
 
 This will significantly speed up builds by reusing your local Rust package cache.
 
 ## Quickstart
 
-To get started you can create a workspace for your project in zkRust by running:
+To get started you can create a workspace for your project in prooflab-rs by running:
 
 ```sh
 cargo new <PROGRAM_DIRECTORY>
 ```
 
-You can test zkRust for any of the examples in the `examples` folder. This include programs for:
+You can test prooflab-rs for any of the examples in the `examples` folder. This include programs for:
 
 - Computing and reading the results of computing Fibonacci numbers.
 - Performing RSA key verification.
@@ -67,7 +67,7 @@ You can test zkRust for any of the examples in the `examples` folder. This inclu
 
 ## Usage:
 
-To use zkRust, users must specify a `main()` function whose execution is proven within the zkVM. This function must be defined within a `main.rs` file in a directory with the following structure:
+To use prooflab-rs, users must specify a `main()` function whose execution is proven within the zkVM. This function must be defined within a `main.rs` file in a directory with the following structure:
 
 ```
 .
@@ -90,30 +90,30 @@ Projects can also store libraries in a separate `lib/` folder.
 
 The user may also define a `input()`, `output()` functions, in addition to `main()`. The `input()` and `output()` functions define code that runs outside of the zkVM before and after the zkVM generates a proof of the users program. The `input()` function executes before the zkVM code is executed and allows the user to define inputs passed to the VM such as a deserialized Tx or data fetched from an external source at runtime. Within the `main()` (guest) function the user may write information from the computation performed in the zkVM to an output buffer to be used after proof generation. The `output()` defines code that allows the user to read the information written to that buffer of the and perform post-processing of that data.
 
-![](./assets/zkRust_execution_flow.png)
+![](./assets/prooflab_execution_flow.png)
 
-The user may specify (public) inputs into the VM (guest) code using `zk_rust_io::write()` as long on the type of Rust object they want to input into the VM implements [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html). Within there `main()` function the user may read in these inputs to there program via `zk_rust_io::read()`. They can also output data computed during the execution phase of the code within the VM program by commiting it to the VM output via `zk_rust_io::commit()`. To read the output of the output of the VM program the user declares `zk_rust_io::out()`, which reads and deserializes the committed information from the VM output buffer.
+The user may specify (public) inputs into the VM (guest) code using `prooflab_io::write()` as long on the type of Rust object they want to input into the VM implements [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html). Within there `main()` function the user may read in these inputs to there program via `prooflab_io::read()`. They can also output data computed during the execution phase of the code within the VM program by commiting it to the VM output via `prooflab_io::commit()`. To read the output of the output of the VM program the user declares `prooflab_io::out()`, which reads and deserializes the committed information from the VM output buffer.
 
-The `zk_rust_io` crate defines function headers that are not inlined and are purely used as compile time symbols to ensure a user can compile there Rust code before running it within one of the zkVM available in zkRust.
+The `prooflab_io` crate defines function headers that are not inlined and are purely used as compile time symbols to ensure a user can compile there Rust code before running it within one of the zkVM available in prooflab-rs.
 
-To use the I/O imports import the `zk_rust_io` crate by adding the following to the `Cargo.toml` in your project directory.
+To use the I/O imports import the `prooflab_io` crate by adding the following to the `Cargo.toml` in your project directory.
 
 ```sh
-zk_rust_io = { git = "https://github.com/yetanotherco/zkRust.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
 ```
 
 ### `input()`:
 
 ```rust
-use zk_rust_io;
+use prooflab_io;
 
 pub fn input() {
     let pattern = "a+".to_string();
     let target_string = "an era of truth, not trust".to_string();
 
     // Write in a simple regex pattern.
-    zk_rust_io::write(&pattern);
-    zk_rust_io::write(&target_string);
+    prooflab_io::write(&pattern);
+    prooflab_io::write(&target_string);
 }
 ```
 
@@ -121,12 +121,12 @@ pub fn input() {
 
 ```rust
 use regex::Regex;
-use zk_rust_io;
+use prooflab_io;
 
 pub fn main() {
     // Read two inputs from the prover: a regex pattern and a target string.
-    let pattern: String = zk_rust_io::read();
-    let target_string: String = zk_rust_io::read();
+    let pattern: String = prooflab_io::read();
+    let target_string: String = prooflab_io::read();
 
     // Try to compile the regex pattern. If it fails, write `false` as output and return.
     let regex = match Regex::new(&pattern) {
@@ -140,18 +140,18 @@ pub fn main() {
     let result = regex.is_match(&target_string);
 
     // Write the result (true or false) to the output.
-    zk_rust_io::commit(&result);
+    prooflab_io::commit(&result);
 }
 ```
 
 ### `output()`:
 
 ```rust
-use zk_rust_io;
+use prooflab_io;
 
 pub fn output() {
     // Read the output.
-    let res: bool = zk_rust_io::out();
+    let res: bool = prooflab_io::out();
     println!("res: {}", res);
 }
 ```
@@ -180,7 +180,7 @@ Then you can import your created keystore using:
 cast wallet import --interactive <PATH_TO_KEYSTORE.json>
 ```
 
-Finally, to generate and send your proof of your programs execution to Aligned use the zkRust CLI with the `--submit-to-aligned` flag.
+Finally, to generate and send your proof of your programs execution to Aligned use the prooflab-rs CLI with the `--submit-to-aligned` flag.
 
 ```sh
 cargo run --release -- prove-sp1 <PROGRAM_DIRECTORY_PATH> --submit-to-aligned --keystore-path <PATH_TO_KEYSTORE>
@@ -214,11 +214,11 @@ cargo run --release -- prove-sp1 <PROGRAM_DIRECTORY_PATH> --submit-to-aligned --
 
 ## Support:
 
-For additional support using zkRust or questions please reach out via the [telegram support group](https://t.me/+JEiLahym_lRkNzM0).
+For additional support using prooflab-rs or questions please reach out via the [telegram support group](https://t.me/+7Qd3EutBDwZhM2U5).
 
 ## Examples:
 
-After installing the binary and required un one of the following commands to test zkRust. You can choose either Risc0 or SP1:
+After installing the binary and required un one of the following commands to test prooflab-rs. You can choose either Risc0 or SP1:
 
 **Fibonacci**:
 
@@ -304,7 +304,7 @@ make prove_sp1_zkquiz
 
 # Acknowledgments:
 
-ZK Rust was intended and designed as a tool to make development on programs that use zkVM's easier and reduce deduplication of code for developers that want to experiment with zk on Aligned layer. We want to thank for the work and contributions of the SP1 and Risc0 teams to the field of Zero Knowledge Cryptography, and building the provers that work as the backbone of zkRust, and also for providing the examples ours are derived from.
+prooflab-rs was intended and designed as a tool to make development on programs that use zkVM's easier and reduce deduplication of code for developers that want to experiment with zk on Aligned layer. We want to thank for the work and contributions of the SP1 and Risc0 teams to the field of Zero Knowledge Cryptography, and building the provers that work as the backbone of prooflab-rs, and also for providing the examples ours are derived from.
 
 [SP1](https://github.com/succinctlabs/sp1.git)
 

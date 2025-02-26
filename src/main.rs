@@ -9,7 +9,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::time::Instant;
 use tokio::io;
-use zkRust::{
+use prooflab_rs::{
     risc0, sp1, submit_proof_to_aligned, telemetry::TelemetryCollector, utils, ProofArgs,
 };
 
@@ -62,7 +62,7 @@ async fn main() -> io::Result<()> {
                     error!("Failed to locate current directory");
                     return Ok(());
                 };
-                let home_dir = home_dir.join(".zkRust");
+                let home_dir = home_dir.join(".prooflab");
                 utils::prepare_workspace(
                     &PathBuf::from(&args.guest_path),
                     &home_dir.join(sp1::SP1_SRC_DIR),
@@ -298,7 +298,7 @@ async fn main() -> io::Result<()> {
                 )?;
                 return Ok(());
             } else {
-                error!("zkRust directory structure invalid please consult the README",);
+                error!("prooflab-rs directory structure invalid please consult the README",);
                 return Ok(());
             }
         }
@@ -333,7 +333,7 @@ async fn main() -> io::Result<()> {
                     error!("Failed to locate current directory");
                     return Ok(());
                 };
-                let home_dir = home_dir.join(".zkRust");
+                let home_dir = home_dir.join(".prooflab");
                 utils::prepare_workspace(
                     &PathBuf::from(&args.guest_path),
                     &home_dir.join(risc0::RISC0_SRC_DIR),
@@ -556,7 +556,7 @@ async fn main() -> io::Result<()> {
                 )?;
                 return Ok(());
             } else {
-                error!("zkRust directory structure incorrect please consult the README",);
+                error!("prooflab-rs directory structure incorrect please consult the README",);
                 return Ok(());
             }
         }

@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 ed25519-dalek = { version = "2.1.1", features = ["digest", "rand_core", "serde", "signature"] }
 rand = "0.8"
-zk_rust_io = { git = "https://github.com/yetanotherco/zkRust.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }

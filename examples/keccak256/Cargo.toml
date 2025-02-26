@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.204", default-features = false, features = ["derive"] }
 sha3 = { version = "0.10.8", default-features = false }
-zk_rust_io = { git = "https://github.com/yetanotherco/zkRust.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }

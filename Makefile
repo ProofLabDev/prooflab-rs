@@ -10,14 +10,14 @@
 # else ifeq ($(findstring sh,$(SHELL)),sh)
 #     PROFILE := ~/.profile
 # else
-#     echo "zkrust: could not detect shell, manually add ${ZKRUST_BIN_DIR} to your PATH."
+#     echo "prooflab-rs: could not detect shell, manually add ${PROOFLAB_BIN_DIR} to your PATH."
 # 	exit 1
 # endif
 
-install: install_zkRust
+install: install_prooflab
 
-install_zkRust:
-	@curl -L https://raw.githubusercontent.com/yetanotherco/zkRust/main/install_zkrust.sh | bash
+install_prooflab:
+	@curl -L https://raw.githubusercontent.com/ProofLabDev/prooflab-rs/main/install_prooflab.sh | bash
 
 install_sp1:
 	@curl -L https://sp1.succinct.xyz | bash
@@ -171,14 +171,14 @@ benchmark_risc0_bubble_sort:
 docker-shell:
 	docker run -it \
 		--platform=linux/amd64 \
-		-v zkrust-cargo-registry:/root/.cargo/registry \
-		-v zkrust-cargo-git:/root/.cargo/git \
-		-v "$(PWD)/src:/zkrust/src" \
-		-v "$(PWD)/telemetry:/zkrust/telemetry" \
-		-v "$(PWD)/Makefile:/zkrust/Makefile" \
-		-v "$(PWD)/examples:/zkrust/examples" \
-		-w /zkrust \
-		zkrust bash
+		-v prooflab-rs-cargo-registry:/root/.cargo/registry \
+		-v prooflab-rs-cargo-git:/root/.cargo/git \
+		-v "$(PWD)/src:/prooflab-rs/src" \
+		-v "$(PWD)/telemetry:/prooflab-rs/telemetry" \
+		-v "$(PWD)/Makefile:/prooflab-rs/Makefile" \
+		-v "$(PWD)/examples:/prooflab-rs/examples" \
+		-w /prooflab-rs \
+		prooflab-rs bash
 
 docker-build:
-	DOCKER_BUILDKIT=1 docker build --platform=linux/amd64 -t zkrust -f Dockerfile.cpu .
+	DOCKER_BUILDKIT=1 docker build --platform=linux/amd64 -t prooflab-rs -f Dockerfile.cpu .

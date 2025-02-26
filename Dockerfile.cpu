@@ -20,7 +20,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV RUSTUP_PERMIT_COPY_RENAME=true
 
-COPY rust-toolchain.toml /zkrust/rust-toolchain.toml
+COPY rust-toolchain.toml /prooflab-rs/rust-toolchain.toml
 
 # Install rust toolchain
 RUN rustup toolchain install 1.81.0 && \
@@ -31,30 +31,30 @@ RUN rustup toolchain install 1.81.0 && \
 SHELL ["/bin/bash", "-c"]
 
 # Create working directory
-WORKDIR /zkrust
+WORKDIR /prooflab-rs
 
 # Copy project files
-COPY install_zkrust_from_source.sh /zkrust/install_zkrust_from_source.sh
-COPY examples /zkrust/examples
-COPY Makefile /zkrust/Makefile
-COPY src /zkrust/src
-COPY workspaces /zkrust/workspaces
-COPY zk_rust_io /zkrust/zk_rust_io
-COPY Cargo.toml /zkrust/Cargo.toml
-COPY Cargo.lock /zkrust/Cargo.lock
+COPY install_prooflab_from_source.sh /prooflab-rs/install_prooflab_from_source.sh
+COPY examples /prooflab-rs/examples
+COPY Makefile /prooflab-rs/Makefile
+COPY src /prooflab-rs/src
+COPY workspaces /prooflab-rs/workspaces
+COPY prooflab_io /prooflab-rs/prooflab_io
+COPY Cargo.toml /prooflab-rs/Cargo.toml
+COPY Cargo.lock /prooflab-rs/Cargo.lock
 
-# Install zkRust and its dependencies
+# Install prooflab-rs and its dependencies
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
-    chmod +x /zkrust/install_zkrust_from_source.sh && \
-    bash /zkrust/install_zkrust_from_source.sh && \
+    chmod +x /prooflab-rs/install_prooflab_from_source.sh && \
+    bash /prooflab-rs/install_prooflab_from_source.sh && \
     echo 'source ~/.bashrc' >> ~/.bash_profile && \
     echo 'source ~/.bashrc' >> ~/.profile
 
 # Set environment variables
-ENV ZKRUST_DIR=/root/.zkRust
-ENV ZKRUST_BIN_DIR=/root/.zkRust/bin
-ENV PATH="${PATH}:${ZKRUST_BIN_DIR}:/root/.risc0/bin:/root/.sp1/bin"
+ENV PROOFLAB_DIR=/root/.prooflab
+ENV PROOFLAB_BIN_DIR=/root/.prooflab/bin
+ENV PATH="${PATH}:${PROOFLAB_BIN_DIR}:/root/.risc0/bin:/root/.sp1/bin"
 
 # Create entrypoint script properly
 RUN printf '#!/bin/bash\nsource ~/.bashrc\nexec "$@"\n' > /entrypoint.sh && \

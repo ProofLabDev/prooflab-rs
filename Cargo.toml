@@ -1,5 +1,5 @@
 [package]
-name = "zkRust"
+name = "prooflab-rs"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,7 +11,7 @@ regex = "1.10.5"
 anyhow = "1.0.86"
 hex = "0.4.3"
 tokio = "1.38.0"
-zk_rust_io = { path = "./zk_rust_io" }
+prooflab_io = { path = "./prooflab_io" }
 toml = "0.8.12"
 reqwest = { version = "0.11", features = ["blocking"] }
 

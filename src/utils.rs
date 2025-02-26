@@ -7,14 +7,14 @@ use std::{
 };
 
 // Host
-pub const IO_WRITE: &str = "zk_rust_io::write";
-pub const IO_OUT: &str = "zk_rust_io::out();";
+pub const IO_WRITE: &str = "prooflab_io::write";
+pub const IO_OUT: &str = "prooflab_io::out();";
 pub const HOST_INPUT: &str = "// INPUT //";
 pub const HOST_OUTPUT: &str = "// OUTPUT //";
 
 // I/O Markers
-pub const IO_READ: &str = "zk_rust_io::read();";
-pub const IO_COMMIT: &str = "zk_rust_io::commit";
+pub const IO_READ: &str = "prooflab_io::read();";
+pub const IO_COMMIT: &str = "prooflab_io::commit";
 
 pub const OUTPUT_FUNC: &str = r"pub fn output() {";
 pub const INPUT_FUNC: &str = r"pub fn input() {";

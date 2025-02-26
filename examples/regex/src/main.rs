@@ -1,10 +1,10 @@
 use regex::Regex;
-use zk_rust_io;
+use prooflab_io;
 
 pub fn main() {
     // Read two inputs from the prover: a regex pattern and a target string.
-    let pattern: String = zk_rust_io::read();
-    let target_string: String = zk_rust_io::read();
+    let pattern: String = prooflab_io::read();
+    let target_string: String = prooflab_io::read();
 
     // Try to compile the regex pattern. If it fails, write `false` as output and return.
     let regex = match Regex::new(&pattern) {
@@ -18,7 +18,7 @@ pub fn main() {
     let result = regex.is_match(&target_string);
 
     // Write the result (true or false) to the output.
-    zk_rust_io::commit(&result);
+    prooflab_io::commit(&result);
 }
 
 pub fn input() {
@@ -26,12 +26,12 @@ pub fn input() {
     let target_string = "an era of truth, not trust".to_string();
 
     // Write in a simple regex pattern.
-    zk_rust_io::write(&pattern);
-    zk_rust_io::write(&target_string);
+    prooflab_io::write(&pattern);
+    prooflab_io::write(&target_string);
 }
 
 pub fn output() {
     // Read the output.
-    let res: bool = zk_rust_io::out();
+    let res: bool = prooflab_io::out();
     println!("res: {}", res);
 }

@@ -8,9 +8,9 @@ use k256::{
 use rand_core::OsRng;
 
 fn main() {
-    let encoded_verifying_key: EncodedPoint = zk_rust_io::read();
-    let message: Vec<u8> = zk_rust_io::read();
-    let signature_der: Vec<u8> = zk_rust_io::read();
+    let encoded_verifying_key: EncodedPoint = prooflab_io::read();
+    let message: Vec<u8> = prooflab_io::read();
+    let signature_der: Vec<u8> = prooflab_io::read();
     let signature = Signature::from_der(&signature_der).unwrap();
 
     let verifying_key = VerifyingKey::from_encoded_point(&encoded_verifying_key).unwrap();
@@ -20,7 +20,7 @@ fn main() {
         .verify(&message, &signature)
         .expect("ECDSA signature verification failed");
 
-    zk_rust_io::commit(&(encoded_verifying_key, message));
+    prooflab_io::commit(&(encoded_verifying_key, message));
 }
 
 fn input() {
@@ -28,13 +28,13 @@ fn input() {
     let message = b"This is a message that will be signed, and verified within the zkVM".to_vec();
     let signature: Signature = signing_key.sign(&message);
     let vk = signing_key.verifying_key().to_encoded_point(true);
-    zk_rust_io::write(&vk);
-    zk_rust_io::write(&message);
-    zk_rust_io::write(&signature.to_der().as_bytes().to_vec());
+    prooflab_io::write(&vk);
+    prooflab_io::write(&message);
+    prooflab_io::write(&signature.to_der().as_bytes().to_vec());
 }
 
 fn output() {
-    let (receipt_verifying_key, receipt_message): (EncodedPoint, Vec<u8>) = zk_rust_io::out();
+    let (receipt_verifying_key, receipt_message): (EncodedPoint, Vec<u8>) = prooflab_io::out();
 
     println!(
         "Verified the signature over message {:?} with key {}",

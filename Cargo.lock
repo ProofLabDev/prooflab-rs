@@ -4931,6 +4931,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "prooflab-rs"
+version = "0.1.0"
+dependencies = [
+ "aligned-sdk",
+ "anyhow",
+ "bincode",
+ "chrono",
+ "clap",
+ "dialoguer",
+ "dirs",
+ "env_logger",
+ "ethers",
+ "hex",
+ "log",
+ "nvml-wrapper",
+ "prooflab_io",
+ "regex",
+ "reqwest 0.11.27",
+ "risc0-zkvm",
+ "rpassword",
+ "serde",
+ "serde_json",
+ "sp1-sdk",
+ "sysinfo 0.33.1",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "prooflab_io"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "proptest"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8202,42 +8238,6 @@ dependencies = [
  "sha1",
  "time",
  "zstd",
-]
-
-[[package]]
-name = "zkRust"
-version = "0.1.0"
-dependencies = [
- "aligned-sdk",
- "anyhow",
- "bincode",
- "chrono",
- "clap",
- "dialoguer",
- "dirs",
- "env_logger",
- "ethers",
- "hex",
- "log",
- "nvml-wrapper",
- "regex",
- "reqwest 0.11.27",
- "risc0-zkvm",
- "rpassword",
- "serde",
- "serde_json",
- "sp1-sdk",
- "sysinfo 0.33.1",
- "tokio",
- "toml",
- "zk_rust_io",
-]
-
-[[package]]
-name = "zk_rust_io"
-version = "0.1.0"
-dependencies = [
- "serde",
 ]
 
 [[package]]

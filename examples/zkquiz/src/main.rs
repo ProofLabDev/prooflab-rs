@@ -1,10 +1,10 @@
 use tiny_keccak::{Hasher, Sha3};
 use utils::ask_question;
 pub mod utils;
-use zk_rust_io;
+use prooflab_io;
 
 pub fn main() {
-    let answers: String = zk_rust_io::read();
+    let answers: String = prooflab_io::read();
     let mut sha3 = Sha3::v256();
     let mut output = [0u8; 32];
 
@@ -41,7 +41,7 @@ pub fn input() {
     let answers3 = ["Green", "Red", "Blue"];
     user_answers.push(ask_question(question3, &answers3));
 
-    zk_rust_io::write(&user_answers);
+    prooflab_io::write(&user_answers);
 }
 
 pub fn output() {}

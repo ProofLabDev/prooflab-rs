@@ -270,6 +270,14 @@ After installing prooflab-rs, run any of the following example commands. You can
 
 ## Acknowledgments
 
-prooflab-rs is designed to simplify development of programs using zkVMs and reduce code duplication for developers experimenting with zero-knowledge proofs on the Aligned layer.
+ProofLab is a comprehensive toolkit designed to simplify the development, evaluation, and comparison of zero-knowledge applications using various zkVM backends. It provides a unified interface, standardized benchmarking, and robust tooling to help developers build and deploy zero-knowledge applications more efficiently.
 
-We thank the [SP1](https://github.com/succinctlabs/sp1.git) and [Risc0](https://github.com/risc0/risc0.git) teams for their contributions to the field of Zero Knowledge Cryptography and for building the powerful zkVM technologies that prooflab-rs supports.
+ProofLab was forked from [zkRust](https://github.com/yetanotherco/zkRust) which was originally built to experiment with the Aligned Layer project. While maintaining compatibility with Aligned Layer, ProofLab has evolved to be a more general-purpose framework for zkVM development and evaluation.
+
+We extend our deepest gratitude to:
+
+- The [RISC0](https://github.com/risc0/risc0) team for their pioneering work on RISC-V based zero-knowledge virtual machines
+- The [SP1](https://github.com/succinctlabs/sp1) team for their innovative approach to high-performance zero-knowledge computation
+- The entire zero-knowledge community for pushing the boundaries of what's possible with this transformative technology
+
+ProofLab is committed to advancing the state of zero-knowledge application development by providing open tools, standardized metrics, and a collaborative platform for the broader ecosystem.

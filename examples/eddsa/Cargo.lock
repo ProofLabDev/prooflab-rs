@@ -133,8 +133,8 @@ name = "eddsa"
 version = "0.1.0"
 dependencies = [
  "ed25519-dalek",
+ "prooflab_io",
  "rand",
- "zk_rust_io",
 ]
 
 [[package]]
@@ -196,6 +196,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37d3544b3f2748c54e147655edb5025752e2303145b5aefb3c3ea2c78b973bb0"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "prooflab_io"
+version = "0.1.0"
+source = "git+https://github.com/ProofLabDev/prooflab-rs.git#1b58bebe15aeda6ecccea98a3055938d05468be1"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -370,11 +378,3 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
-
-[[package]]
-name = "zk_rust_io"
-version = "0.1.0"
-source = "git+https://github.com/yetanotherco/zkRust.git#206e1740dfe5be4cc6719f48b27918c74ba4ad3f"
-dependencies = [
- "serde",
-]

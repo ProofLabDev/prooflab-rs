@@ -27,6 +27,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "prooflab_io"
+version = "0.1.0"
+source = "git+https://github.com/ProofLabDev/prooflab-rs.git#1b58bebe15aeda6ecccea98a3055938d05468be1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,8 +47,8 @@ dependencies = [
 name = "regex"
 version = "0.1.0"
 dependencies = [
+ "prooflab_io",
  "regex 1.11.1",
- "zk_rust_io",
 ]
 
 [[package]]
@@ -108,11 +116,3 @@ name = "unicode-ident"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
-
-[[package]]
-name = "zk_rust_io"
-version = "0.1.0"
-source = "git+https://github.com/yetanotherco/zkRust.git#206e1740dfe5be4cc6719f48b27918c74ba4ad3f"
-dependencies = [
- "serde",
-]

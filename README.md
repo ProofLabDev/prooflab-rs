@@ -1,43 +1,47 @@
 # prooflab-rs
 
-`prooflab-rs` is a CLI tool to simplify developing zk applications in Rust using zkVM's such as SP1 or Risc0.
+prooflab-rs is a CLI tool that simplifies developing zero-knowledge applications in Rust using zkVMs like SP1 or Risc0.
 
-`prooflab-rs` simplifies the development experience of using zkVM's by abstracting the complexity of using zkVM's from the developer and providing them the choice of which zkVM they would like to develop with.
+It abstracts away the complexity of zkVM integration while giving developers the choice of which zkVM backend to use for their applications.
 
-## Installation:
-First make sure [Rust](https://www.rust-lang.org/tools/install) is installed on your machine. 
+For performance benchmarks and detailed reports on each supported zkVM, visit [prooflab.dev](https://prooflab.dev) - our benchmark platform that helps you compare and select the right zkVM for your specific needs.
 
+## Installation
 
-prooflab-rs can also be installed directly by downloading the latest release binaries.
+### Prerequisites
+
+- [Rust](https://www.rust-lang.org/tools/install) must be installed on your machine
+
+### Option 1: Install from Release Binaries
 
 ```sh
 curl -L https://raw.githubusercontent.com/ProofLabDev/prooflab-rs/main/install_prooflab.sh | bash
 ```
 
-for local development install the repository dependencies.
+### Option 2: Install for Local Development
 
 ```sh
 make install
 ```
 
-## Docker
+### Option 3: Use Docker
 
-prooflab-rs can also be run in a Docker container. The provided Dockerfile sets up a complete environment with all necessary dependencies.
+prooflab-rs can also be run in a Docker container with all dependencies pre-configured.
 
-### Building the Image
+#### Building the Docker Image
 
 ```sh
 docker build -t prooflab-rs .
 ```
 
-### Running the Container
+#### Running the Docker Container
 
 Basic usage:
 ```sh
 docker run -it prooflab-rs bash
 ```
 
-For faster builds and better performance, mount the Rust cache directories:
+For faster builds and better performance, mount your local Rust cache:
 ```sh
 docker run -it \
   -v "$HOME/.cargo/registry:/root/.cargo/registry" \
@@ -45,29 +49,33 @@ docker run -it \
   prooflab-rs bash
 ```
 
-This will significantly speed up builds by reusing your local Rust package cache.
+This significantly speeds up builds by reusing your local Rust package cache.
 
 ## Quickstart
 
-To get started you can create a workspace for your project in prooflab-rs by running:
+### Creating a New Project
+
+Create a workspace for your project:
 
 ```sh
 cargo new <PROGRAM_DIRECTORY>
 ```
 
-You can test prooflab-rs for any of the examples in the `examples` folder. This include programs for:
+### Try the Examples
 
-- Computing and reading the results of computing Fibonacci numbers.
-- Performing RSA key verification.
-- Performing ECDSA program.
-- Verification of a blockchain state diff.
-- Computing the Sha256 hash of a value.
-- Verifying a tendermint block.
-- Interacting with a user to answer a quiz.
+prooflab-rs comes with several example programs in the `examples` directory that demonstrate different use cases:
+
+- **Fibonacci**: Computing and reading Fibonacci numbers
+- **RSA**: Key verification
+- **ECDSA**: Signature verification
+- **JSON**: Verification of blockchain state diffs
+- **SHA256**: Computing cryptographic hashes
+- **Tendermint**: Block verification
+- **ZK Quiz**: Interactive user quiz with zero-knowledge proofs
 
 ## Usage:
 
-To use prooflab-rs, users must specify a `main()` function whose execution is proven within the zkVM. This function must be defined within a `main.rs` file in a directory with the following structure:
+To use prooflab-rs, you must define a `main()` function that will be executed and proven within the zkVM. This function must be defined in a `main.rs` file with the following directory structure:
 
 ```
 .
@@ -77,7 +85,7 @@ To use prooflab-rs, users must specify a `main()` function whose execution is pr
         └── main.rs
 ```
 
-Projects can also store libraries in a separate `lib/` folder.
+Projects can also include libraries in a separate `lib/` folder:
 
 ```
 .
@@ -88,17 +96,31 @@ Projects can also store libraries in a separate `lib/` folder.
         └── main.rs
 ```
 
-The user may also define a `input()`, `output()` functions, in addition to `main()`. The `input()` and `output()` functions define code that runs outside of the zkVM before and after the zkVM generates a proof of the users program. The `input()` function executes before the zkVM code is executed and allows the user to define inputs passed to the VM such as a deserialized Tx or data fetched from an external source at runtime. Within the `main()` (guest) function the user may write information from the computation performed in the zkVM to an output buffer to be used after proof generation. The `output()` defines code that allows the user to read the information written to that buffer of the and perform post-processing of that data.
+In addition to `main()`, you can define optional `input()` and `output()` functions:
+
+- `input()`: Runs outside the zkVM before proof generation. Use this to prepare inputs for the VM, such as deserializing transactions or fetching external data.
+- `main()`: Runs inside the zkVM. This is the code that will be proven.
+- `output()`: Runs outside the zkVM after proof generation. Use this to process data produced by the VM.
 
 ![](./assets/prooflab_execution_flow.png)
 
-The user may specify (public) inputs into the VM (guest) code using `prooflab_io::write()` as long on the type of Rust object they want to input into the VM implements [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html). Within there `main()` function the user may read in these inputs to there program via `prooflab_io::read()`. They can also output data computed during the execution phase of the code within the VM program by commiting it to the VM output via `prooflab_io::commit()`. To read the output of the output of the VM program the user declares `prooflab_io::out()`, which reads and deserializes the committed information from the VM output buffer.
+### Data Flow Between Host and Guest
 
-The `prooflab_io` crate defines function headers that are not inlined and are purely used as compile time symbols to ensure a user can compile there Rust code before running it within one of the zkVM available in prooflab-rs.
+prooflab-rs provides a simple I/O API through the `prooflab_io` crate:
 
-To use the I/O imports import the `prooflab_io` crate by adding the following to the `Cargo.toml` in your project directory.
+1. **Host → Guest**: Use `prooflab_io::write()` in your `input()` function to send data to the VM. Any type that implements [Serialize](https://docs.rs/serde/latest/serde/trait.Serialize.html) can be used.
 
-```sh
+2. **Inside Guest**: Use `prooflab_io::read()` in your `main()` function to receive input data. Use `prooflab_io::commit()` to send output data.
+
+3. **Guest → Host**: Use `prooflab_io::out()` in your `output()` function to retrieve data committed by the guest.
+
+The `prooflab_io` crate provides function declarations that act as compile-time symbols, allowing you to compile and test your code before running it in a zkVM.
+
+### Adding prooflab_io to Your Project
+
+Add the `prooflab_io` crate to your project by including the following in your `Cargo.toml`:
+
+```toml
 prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
 ```
 
@@ -156,156 +178,91 @@ pub fn output() {
 }
 ```
 
-To generate a proof of the execution of your code run the following:
+### Generating Proofs
 
-- **SP1**:
+To generate a proof of your code's execution, run one of the following commands:
+
+- **Using SP1**:
   ```sh
   cargo run --release -- prove-sp1 <PROGRAM_DIRECTORY_PATH>
   ```
-- **Risc0**:
+
+- **Using Risc0**:
   ```sh
-  cargo run --release -- prove-risc0  <PROGRAM_DIRECTORY_PATH>
+  cargo run --release -- prove-risc0 <PROGRAM_DIRECTORY_PATH>
   ```
-  ***NOTE*** Currently Aligned supports verification of [Risc0](https://dev.risczero.com/api/zkvm/quickstart#1-install-the-risc-zero-toolchain) proofs from release version `v1.0.1`. 
 
-To generate your proof and send it to [Aligned](https://github.com/yetanotherco/aligned_layer). First generate a local wallet keystore using `[cast](https://book.getfoundry.sh/cast/).
+  > **Note:** Aligned currently supports verification of [Risc0](https://dev.risczero.com/api/zkvm/quickstart#1-install-the-risc-zero-toolchain) proofs from release version `v1.0.1`. 
 
-```sh
-cast wallet new-mnemonic
-```
+### Submitting Proofs to Aligned
 
-Then you can import your created keystore using:
+To submit proofs to [Aligned](https://github.com/yetanotherco/aligned_layer), follow these steps:
 
-```sh
-cast wallet import --interactive <PATH_TO_KEYSTORE.json>
-```
+1. Generate a local wallet keystore using [cast](https://book.getfoundry.sh/cast/):
+   ```sh
+   cast wallet new-mnemonic
+   ```
 
-Finally, to generate and send your proof of your programs execution to Aligned use the prooflab-rs CLI with the `--submit-to-aligned` flag.
+2. Import your created keystore:
+   ```sh
+   cast wallet import --interactive <PATH_TO_KEYSTORE.json>
+   ```
 
-```sh
-cargo run --release -- prove-sp1 <PROGRAM_DIRECTORY_PATH> --submit-to-aligned --keystore-path <PATH_TO_KEYSTORE>
-```
+3. Generate and submit your proof using the `--submit-to-aligned` flag:
+   ```sh
+   cargo run --release -- prove-sp1 <PROGRAM_DIRECTORY_PATH> --submit-to-aligned --keystore-path <PATH_TO_KEYSTORE>
+   ```
 
-### Flags:
+### Command-line Options
 
-- `--submit-to-aligned`: Sends the proof to be verified on Aligned after proof generation. Requires an rpc url and keystore for a funded wallet specified via the `--rpc-url` and `--key_store` flags.
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--submit-to-aligned` | Sends the proof to Aligned for verification after generation. Requires RPC URL and keystore. | |
+| `--keystore-path` | Path to your wallet keystore. | `~/keystore` |
+| `--rpc-url` | Ethereum RPC URL for submitting proofs. | `https://ethereum-holesky-rpc.publicnode.com` |
+| `--network` | Chain ID of the Ethereum network where Aligned is deployed. | `holesky` |
+| `--precompiles` | Enables hardware acceleration for specific cryptographic operations. | |
 
-- `--keystore-path`: Path to the keystore of the users wallet. Defaults to `~/keystore`.
+#### Precompile Acceleration
 
-- `--rpc-url`: Specifies the rpc-url used for the user eth rpc-url. Defaults to `https://ethereum-holesky-rpc.publicnode.com`.
+When the `--precompiles` flag is used, the following operations are accelerated:
 
-- `--network`: Chain ID number of the ethereum chain Aligned is deployed on. Defaults to `holesky`.
+**SP1 Accelerated Crates:**
+- sha2 v0.10.6
+- sha3 v0.10.8
+- crypto-bigint v0.5.5
+- tiny-keccak v2.0.2
+- ed25519-consensus v2.1.0
+- ecdsa-core v0.16.9
 
-- `--precompiles`: Enables acceleration via precompiles for supported zkVM's. Specifying this flag allows for VM specific speedups for specific expensive operations such as SHA256, SHA3, bigint multiplication, and ed25519 signature verification. By specifying this flag proving operations for specific operations within the following rust crates are accelerated:
+**Risc0 Accelerated Crates:**
+- sha2 v0.10.6
+- k256 v0.13.1
+- crypto-bigint v0.5.5
 
-  - SP1:
+> **Note:** For precompiles to work, your project must use the exact crate versions listed above.
 
-    - sha2 v0.10.6
-    - sha3 v0.10.8
-    - crypto-bigint v0.5.5
-    - tiny-keccak v2.0.2
-    - ed25519-consensus v2.1.0
-    - ecdsa-core v0.16.9
+## Support
 
-  - Risc0:
-    - sha2 v0.10.6
-    - k256 v0.13.1
-    - crypto-bigint v0.5.5
+For help with prooflab-rs or questions about implementation, please join our [Telegram support group](https://t.me/+7Qd3EutBDwZhM2U5).
 
-## Support:
+## Examples
 
-For additional support using prooflab-rs or questions please reach out via the [telegram support group](https://t.me/+7Qd3EutBDwZhM2U5).
+After installing prooflab-rs, run any of the following example commands. You can choose either Risc0 or SP1 as your zkVM backend:
 
-## Examples:
+| Example | Risc0 | SP1 |
+|---------|-------|-----|
+| **Fibonacci** | `make prove_risc0_fibonacci` | `make prove_sp1_fibonacci` |
+| **RSA** | `make prove_risc0_rsa` | `make prove_sp1_rsa` |
+| **ECDSA** | `make prove_risc0_ecdsa` | `make prove_sp1_ecdsa` |
+| **Blockchain State Diff** | `make prove_risc0_json` | `make prove_sp1_json` |
+| **Regex** | `make prove_risc0_regex` | `make prove_sp1_regex` |
+| **SHA256** | `make prove_risc0_sha` | `make prove_sp1_sha` |
+| **Tendermint** | `make prove_risc0_tendermint` | `make prove_sp1_tendermint` |
+| **ZK Quiz** | `make prove_risc0_zkquiz` | `make prove_sp1_zkquiz` |
 
-After installing the binary and required un one of the following commands to test prooflab-rs. You can choose either Risc0 or SP1:
+## Acknowledgments
 
-**Fibonacci**:
+prooflab-rs is designed to simplify development of programs using zkVMs and reduce code duplication for developers experimenting with zero-knowledge proofs on the Aligned layer.
 
-```bash
-make prove_risc0_fibonacci
-```
-
-```bash
-make prove_sp1_fibonacci
-```
-
-**RSA**:
-
-```bash
-make prove_risc0_rsa
-```
-
-```bash
-make prove_sp1_rsa
-```
-
-**ECDSA**:
-
-```bash
-make prove_risc0_ecdsa
-```
-
-```bash
-make prove_sp1_ecdsa
-```
-
-**Blockchain State Diff**:
-
-```bash
-make prove_risc0_json
-```
-
-```bash
-make prove_sp1_json
-```
-
-**Regex**:
-
-```bash
-make prove_risc0_regex
-```
-
-```bash
-make prove_sp1_regex
-```
-
-**Sha**:
-
-```bash
-make prove_risc0_sha
-```
-
-```bash
-make prove_sp1_sha
-```
-
-**Tendermint**:
-
-```bash
-make prove_risc0_tendermint
-```
-
-```bash
-make prove_sp1_tendermint
-```
-
-**Zk Quiz**:
-
-```bash
-make prove_risc0_zkquiz
-```
-
-```bash
-make prove_sp1_zkquiz
-```
-
-**NOTE**: for the precompiles to be included within the compilation step the crate version you are using must match the crate version above.
-
-# Acknowledgments:
-
-prooflab-rs was intended and designed as a tool to make development on programs that use zkVM's easier and reduce deduplication of code for developers that want to experiment with zk on Aligned layer. We want to thank for the work and contributions of the SP1 and Risc0 teams to the field of Zero Knowledge Cryptography, and building the provers that work as the backbone of prooflab-rs, and also for providing the examples ours are derived from.
-
-[SP1](https://github.com/succinctlabs/sp1.git)
-
-[Risc0](https://github.com/risc0/risc0.git)
+We thank the [SP1](https://github.com/succinctlabs/sp1.git) and [Risc0](https://github.com/risc0/risc0.git) teams for their contributions to the field of Zero Knowledge Cryptography and for building the powerful zkVM technologies that prooflab-rs supports.

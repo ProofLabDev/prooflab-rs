@@ -230,6 +230,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "prooflab_io"
+version = "0.1.0"
+source = "git+https://github.com/ProofLabDev/prooflab-rs.git#1b58bebe15aeda6ecccea98a3055938d05468be1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -273,10 +281,10 @@ name = "rsa"
 version = "0.1.0"
 dependencies = [
  "digest",
+ "prooflab_io",
  "rand",
  "rsa 0.6.1",
  "sha2",
- "zk_rust_io",
 ]
 
 [[package]]
@@ -419,11 +427,3 @@ name = "zeroize"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
-
-[[package]]
-name = "zk_rust_io"
-version = "0.1.0"
-source = "git+https://github.com/yetanotherco/zkRust.git#206e1740dfe5be4cc6719f48b27918c74ba4ad3f"
-dependencies = [
- "serde",
-]

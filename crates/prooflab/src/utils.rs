@@ -501,10 +501,10 @@ pub fn prepare_guest(
         .push_str("\n    println!(\"cycle-tracker-report-end: {}\", env!(\"CARGO_PKG_NAME\"));\n");
     guest_program.push_str("}\n");
 
-    // Replace zkRust::read()
+    // Replace prooflab::read()
     let guest_program = guest_program.replace(IO_READ, io_read_header);
 
-    // Replace zkRust::commit()
+    // Replace prooflab::commit()
     let guest_program = guest_program.replace(IO_COMMIT, io_commit_header);
 
     // Write to guest

@@ -8,7 +8,6 @@ The project is organized as a Cargo workspace with the following crates:
 
 - `crates/prooflab`: Core CLI tool and zkVM integration
 - `crates/prooflab_io`: I/O marshalling between host and guest programs
-- `crates/zk_rust_io`: Alternative I/O interface for guest programs
 
 It abstracts away the complexity of zkVM integration while giving developers the choice of which zkVM backend to use for their applications.
 

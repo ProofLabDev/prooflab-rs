@@ -1,9 +1,9 @@
 #![no_main]
 sp1_zkvm::entrypoint!(main);
-use zk_rust_io;
+use prooflab_io;
 pub fn main() {
     println!("cycle-tracker-report-start: {}", env!("CARGO_PKG_NAME"));
-let n: u32 = sp1_zkvm::io::read();
+    let n: u32 = sp1_zkvm::io::read();
     sp1_zkvm::io::commit(&n);
 
     let mut a: u32 = 0;

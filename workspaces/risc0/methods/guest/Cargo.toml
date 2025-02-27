@@ -11,4 +11,4 @@ risc0-zkvm = { git = "https://github.com/risc0/risc0", features = [
     "getrandom",
 ], tag = "v1.2.0" }
 
-zk_rust_io = { git = "https://github.com/yetanotherco/zkRust.git" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package="prooflab_io" }

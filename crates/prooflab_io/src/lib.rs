@@ -9,6 +9,6 @@ pub fn commit<T: Serialize>(_value: &T) {}
 #[inline(never)]
 pub fn write<T: Serialize>(_buf: &T) {}
 #[inline(never)]
-pub fn out<T: Default>() -> T{
+pub fn out<T: Default>() -> T {
     T::default()
 }

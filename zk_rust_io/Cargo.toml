@@ -1,7 +1,0 @@
-[package]
-name = "zk_rust_io"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-serde = "1.0.204"

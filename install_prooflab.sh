@@ -2,12 +2,12 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-echo "Installing prooflab-rs..."
+echo "Installing prooflab..."
 
 BASE_DIR=$HOME
 PROOFLAB_DIR="${PROOFLAB_DIR-"$BASE_DIR/.prooflab"}"
 PROOFLAB_BIN_DIR="$PROOFLAB_DIR/bin"
-PROOFLAB_BIN_PATH="$PROOFLAB_BIN_DIR/prooflab-rs"
+PROOFLAB_BIN_PATH="$PROOFLAB_BIN_DIR/prooflab"
 PROOFLAB_GIT_REPO_URL="https://github.com/ProofLabDev/prooflab-rs.git"
 CURRENT_TAG=$(curl -s -L \
   -H "Accept: application/vnd.github+json" \
@@ -18,9 +18,9 @@ RELEASE_URL="https://github.com/ProofLabDev/prooflab-rs/releases/download/$CURRE
 ARCH=$(uname -m)
 
 if [ "$ARCH" == "x86_64" ]; then
-    FILE="prooflab-rs-x86"
+    FILE="prooflab-x86"
 elif [ "$ARCH" == "arm64" ]; then
-    FILE="prooflab-rs-arm64"
+    FILE="prooflab-arm64"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
@@ -28,7 +28,7 @@ fi
 
 mkdir -p "$PROOFLAB_BIN_DIR"
 if curl -sSf -L "$RELEASE_URL$FILE" -o "$PROOFLAB_BIN_PATH"; then
-    echo "prooflab-rs downloaded successful, installing..."
+    echo "prooflab downloaded successful, installing..."
 else
     echo "Error: Failed to download $RELEASE_URL$FILE"
     exit 1
@@ -54,7 +54,7 @@ case $SHELL in
     PREF_SHELL=ash
     ;;
 *)
-    echo "prooflab-rs: could not detect shell, manually add ${PROOFLAB_BIN_DIR} to your PATH."
+    echo "prooflab: could not detect shell, manually add ${PROOFLAB_BIN_DIR} to your PATH."
     exit 1
 esac
 
@@ -69,7 +69,7 @@ if [[ ":$PATH:" != *":${PROOFLAB_BIN_DIR}:"* ]]; then
     fi
 fi
 
-echo "prooflab-rs installed successfully in $PROOFLAB_BIN_PATH."
+echo "prooflab installed successfully in $PROOFLAB_BIN_PATH."
 echo "Detected your preferred shell is $PREF_SHELL and added aligned to PATH."
 echo "Installing zkVM toolchains"
 
@@ -97,4 +97,4 @@ cp -r "$PROOFLAB_DIR/prooflab-rs/workspaces" "$PROOFLAB_DIR/."
 # Clean up the cloned repository
 rm -rf "$PROOFLAB_DIR/prooflab-rs"
 
-echo "Run 'source $PROFILE' or start a new terminal session to use prooflab-rs!"
+echo "Run 'source $PROFILE' or start a new terminal session to use prooflab!"

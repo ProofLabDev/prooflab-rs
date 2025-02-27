@@ -3,15 +3,15 @@ use clap::{Parser, Subcommand};
 use env_logger::Env;
 use log::error;
 use log::info;
+use prooflab::{
+    risc0, sp1, submit_proof_to_aligned, telemetry::TelemetryCollector, utils, ProofArgs,
+};
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::time::Instant;
 use tokio::io;
-use prooflab_rs::{
-    risc0, sp1, submit_proof_to_aligned, telemetry::TelemetryCollector, utils, ProofArgs,
-};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]

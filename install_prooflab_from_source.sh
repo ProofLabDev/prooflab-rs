@@ -8,15 +8,15 @@ echo "Installing prooflab-rs from source..."
 BASE_DIR=$HOME
 PROOFLAB_DIR="${PROOFLAB_DIR-"$BASE_DIR/.prooflab"}"
 PROOFLAB_BIN_DIR="$PROOFLAB_DIR/bin"
-PROOFLAB_BIN_PATH="$PROOFLAB_BIN_DIR/prooflab-rs"
+PROOFLAB_BIN_PATH="$PROOFLAB_BIN_DIR/prooflab"
 
 # Create bin directory
 mkdir -p "$PROOFLAB_BIN_DIR"
 
 # Build from source using local code
 echo "Building prooflab-rs from source..."
-cargo build --release
-cp target/release/prooflab-rs "$PROOFLAB_BIN_PATH"
+cargo build --release -p prooflab
+cp target/release/prooflab "$PROOFLAB_BIN_PATH"
 
 chmod +x "$PROOFLAB_BIN_PATH"
 
@@ -52,7 +52,7 @@ if [[ ":$PATH:" != *":${PROOFLAB_BIN_DIR}:"* ]]; then
     fi
 fi
 
-echo "prooflab-rs built and installed successfully in $PROOFLAB_BIN_PATH"
+echo "prooflab built and installed successfully in $PROOFLAB_BIN_PATH"
 echo "Detected your preferred shell is $PREF_SHELL and added to PATH."
 echo "Installing zkVM toolchains"
 
@@ -85,4 +85,4 @@ echo "Setting up workspaces..."
 mkdir -p "$PROOFLAB_DIR/workspaces"
 cp -r "$SCRIPT_DIR/workspaces/"* "$PROOFLAB_DIR/workspaces/"
 
-echo "Run 'source $PROFILE' or start a new terminal session to use prooflab-rs!" 
+echo "Run 'source $PROFILE' or start a new terminal session to use prooflab!" 

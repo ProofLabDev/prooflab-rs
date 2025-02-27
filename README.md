@@ -2,6 +2,14 @@
 
 prooflab-rs is a CLI tool that simplifies developing zero-knowledge applications in Rust using zkVMs like SP1 or Risc0.
 
+## Project Structure
+
+The project is organized as a Cargo workspace with the following crates:
+
+- `crates/prooflab`: Core CLI tool and zkVM integration
+- `crates/prooflab_io`: I/O marshalling between host and guest programs
+- `crates/zk_rust_io`: Alternative I/O interface for guest programs
+
 It abstracts away the complexity of zkVM integration while giving developers the choice of which zkVM backend to use for their applications.
 
 For performance benchmarks and detailed reports on each supported zkVM, visit [prooflab.dev](https://prooflab.dev) - our benchmark platform that helps you compare and select the right zkVM for your specific needs.
@@ -121,7 +129,7 @@ The `prooflab_io` crate provides function declarations that act as compile-time 
 Add the `prooflab_io` crate to your project by including the following in your `Cargo.toml`:
 
 ```toml
-prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git", package = "prooflab_io" }
 ```
 
 ### `input()`:

@@ -1,6 +1,6 @@
-# ProofLab-rs Usage Guide
+# ProofLab Usage Guide
 
-This comprehensive guide explains how to use prooflab-rs to develop zero-knowledge applications using zkVMs like SP1 and RISC0.
+This comprehensive guide explains how to use ProofLab to develop zero-knowledge applications using zkVMs like SP1 and RISC0.
 
 ## Table of Contents
 
@@ -17,18 +17,23 @@ This comprehensive guide explains how to use prooflab-rs to develop zero-knowled
 
 ## Understanding the Architecture
 
-ProofLab-rs simplifies writing zero-knowledge proofs by providing a framework that abstracts away the complexities of zkVM integration. At its core, ProofLab-rs separates code into:
+ProofLab simplifies writing zero-knowledge proofs by providing a framework that abstracts away the complexities of zkVM integration. The project is organized as a Cargo workspace with multiple crates:
+
+- **prooflab**: Main CLI tool and zkVM integration
+- **prooflab_io**: I/O marshalling between host and guest programs
+
+At its core, ProofLab separates code into:
 
 - **Guest code**: Runs inside the zkVM and generates proofs (your `main()` function)
 - **Host code**: Runs outside the zkVM to provide inputs and process outputs (your `input()` and `output()` functions)
 
 This isolation ensures clear boundaries between the proven code and the supporting infrastructure.
 
-![ProofLab Execution Flow](./assets/prooflab_execution_flow.png)
+![ProofLab Execution Flow](../assets/prooflab_execution_flow.png)
 
 ## Project Structure
 
-A basic ProofLab-rs project follows this structure:
+A basic ProofLab project follows this structure:
 
 ```
 my_zkvm_program/
@@ -70,12 +75,12 @@ edition = "2021"
 
 [dependencies]
 # Other dependencies your code needs
-prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git", package = "prooflab_io" }
 ```
 
 ## The Three Core Functions
 
-Every ProofLab-rs project must implement a `main()` function and can optionally implement `input()` and `output()` functions.
+Every ProofLab project must implement a `main()` function and can optionally implement `input()` and `output()` functions.
 
 ### The `main()` Function
 
@@ -333,13 +338,13 @@ Once your code is ready, you can generate a zero-knowledge proof of its executio
 ### Using SP1 Backend
 
 ```bash
-cargo run --release -- prove-sp1 /path/to/my_zkvm_program
+cargo run --release -p prooflab -- prove-sp1 /path/to/my_zkvm_program
 ```
 
 ### Using RISC0 Backend
 
 ```bash
-cargo run --release -- prove-risc0 /path/to/my_zkvm_program
+cargo run --release -p prooflab -- prove-risc0 /path/to/my_zkvm_program
 ```
 
 ### Using GPU Acceleration
@@ -347,7 +352,7 @@ cargo run --release -- prove-risc0 /path/to/my_zkvm_program
 For faster proof generation, you can use GPU acceleration (requires compatible hardware):
 
 ```bash
-cargo run --release -- prove-sp1 /path/to/my_zkvm_program --gpu
+cargo run --release -p prooflab -- prove-sp1 /path/to/my_zkvm_program --gpu
 ```
 
 ### Submitting Proofs to Aligned
@@ -355,7 +360,7 @@ cargo run --release -- prove-sp1 /path/to/my_zkvm_program --gpu
 If you want to submit your proofs to the Aligned Layer verification system:
 
 ```bash
-cargo run --release -- prove-sp1 /path/to/my_zkvm_program --submit-to-aligned --keystore-path /path/to/keystore.json
+cargo run --release -p prooflab -- prove-sp1 /path/to/my_zkvm_program --submit-to-aligned --keystore-path /path/to/keystore.json
 ```
 
 ## Advanced Topics
@@ -512,11 +517,12 @@ If you encounter issues not covered here:
 
 1. Check the [ProofLab GitHub repository](https://github.com/ProofLabDev/prooflab-rs) for updates
 2. Join the [Telegram support group](https://t.me/+7Qd3EutBDwZhM2U5)
-3. Review the examples provided with ProofLab-rs for reference implementations
+3. Review the examples provided with ProofLab for reference implementations
+4. Look at the test suite in the `crates/prooflab/tests` directory to understand the internals
 
 ## Conclusion
 
-ProofLab-rs provides a simplified way to develop zero-knowledge applications while abstracting away the complexities of zkVM integration. By following the patterns in this guide, you can create efficient and effective zkVM programs with your choice of backend.
+ProofLab provides a simplified way to develop zero-knowledge applications while abstracting away the complexities of zkVM integration. By following the patterns in this guide, you can create efficient and effective zkVM programs with your choice of backend.
 
 Remember the key workflow:
 1. Define your computation in `main()`
@@ -524,4 +530,4 @@ Remember the key workflow:
 3. Process outputs in `output()`
 4. Generate proofs with your preferred zkVM
 
-Happy proving!
+Happy proving with ProofLab!

@@ -1,13 +1,13 @@
-# How to Add a New zkVM Backend to prooflab-rs
+# How to Add a New zkVM Backend to ProofLab
 
-This guide explains the process of adding a new Zero-Knowledge Virtual Machine (zkVM) backend to the prooflab-rs framework, allowing it to work alongside existing RISC0 and SP1 implementations.
+This guide explains the process of adding a new Zero-Knowledge Virtual Machine (zkVM) backend to the ProofLab framework, allowing it to work alongside existing RISC0 and SP1 implementations.
 
 ## 1. Create the Backend Module
 
-First, create a new module file for your zkVM in the `src` directory:
+First, create a new module file for your zkVM in the `crates/prooflab/src` directory:
 
 ```rust
-// src/your_zkvm.rs
+// crates/prooflab/src/your_zkvm.rs
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -130,7 +130,7 @@ pub fn read_metrics() -> io::Result<YourZkVMMetrics> {
 
 ## 2. Update the Library Interface
 
-Add your module to `src/lib.rs`:
+Add your module to `crates/prooflab/src/lib.rs`:
 
 ```rust
 pub mod risc0;
@@ -142,7 +142,7 @@ pub mod utils;
 
 ## 3. Update the CLI
 
-Modify `src/main.rs` to add a new subcommand for your zkVM:
+Modify `crates/prooflab/src/main.rs` to add a new subcommand for your zkVM:
 
 ```rust
 #[derive(Subcommand)]
@@ -263,11 +263,13 @@ prove_your_zkvm_example:
 
 For complete integration, you'll need to understand several key aspects:
 
-1. **Workspace Structure**: prooflab-rs uses a multi-workspace approach to separate guest (zkVM program) and host (verifier/prover) code.
+1. **Cargo Workspace Structure**: ProofLab is organized as a Cargo workspace with multiple crates:
+   - `crates/prooflab`: The main CLI tool and zkVM integration
+   - `crates/prooflab_io`: I/O marshalling between host and guest
 
 2. **Function Extraction**: The framework extracts user's `main()`, `input()`, and `output()` functions and wraps them with zkVM-specific code.
 
-3. **I/O Abstraction**: The `prooflab_io` module provides a consistent I/O interface that is mapped to zkVM-specific I/O operations.
+3. **I/O Abstraction**: The `prooflab_io` crate provides a consistent I/O interface that is mapped to zkVM-specific I/O operations.
 
 4. **Telemetry Collection**: The framework collects performance metrics during proof generation.
 

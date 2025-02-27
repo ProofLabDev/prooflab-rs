@@ -17,7 +17,7 @@ This document provides an in-depth explanation of ProofLab-rs's architecture, wo
 
 ## Architecture Overview
 
-ProofLab-rs uses a layered architecture that separates application code from zkVM-specific implementation details. At a high level, ProofLab-rs consists of:
+ProofLab uses a layered architecture that separates application code from zkVM-specific implementation details. The project is organized as a Cargo workspace with multiple crates. At a high level, ProofLab consists of:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -28,15 +28,24 @@ ProofLab-rs uses a layered architecture that separates application code from zkV
 └─────────────┬─────────────────┬─────────────────┬───────────┘
               │                 │                 │
 ┌─────────────▼─────────────────▼─────────────────▼───────────┐
-│                        ProofLab-rs                          │
-│    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│    │ Host Handler │  │ Guest Handler│  │   Workflow   │    │
-│    └──────────────┘  └──────────────┘  └──────────────┘    │
-│                                                             │
-│    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│    │   Backend    │  │ I/O Handling │  │   Telemetry  │    │
-│    │  Connectors  │  │     Layer    │  │  Collection  │    │
-│    └──────────────┘  └──────────────┘  └──────────────┘    │
+│                  ProofLab Workspace                         │
+│    ┌──────────────────────┐  ┌──────────────────────────┐   │
+│    │   prooflab crate     │  │     prooflab_io crate    │   │
+│    │  ┌──────────────┐    │  │                          │   │
+│    │  │ Host Handler │    │  │     I/O Marshalling      │   │
+│    │  └──────────────┘    │  │        Layer             │   │
+│    │  ┌──────────────┐    │  └──────────────────────────┘   │
+│    │  │Guest Handler │    │                                 │
+│    │  └──────────────┘    │                                 │
+│    │  ┌──────────────┐    │                                 │
+│    │  │   Backend    │    │                                 │
+│    │  │  Connectors  │    │                                 │
+│    │  └──────────────┘    │                                 │
+│    │  ┌──────────────┐    │                                 │
+│    │  │  Telemetry   │    │                                 │
+│    │  │ Collection   │    │                                 │
+│    │  └──────────────┘    │                                 │
+│    └──────────────────────┘                                 │
 └─────────────┬─────────────────┬─────────────────┬───────────┘
               │                 │                 │
 ┌─────────────▼─────┐ ┌─────────▼─────┐ ┌─────────▼─────┐
@@ -54,18 +63,24 @@ The architecture enables users to focus on their application logic rather than z
 2. **main() Function**: Contains the core logic to be proven. Runs inside the zkVM.
 3. **output() Function**: Processes proof results. Runs on the host system.
 
-### ProofLab-rs Core Components
+### ProofLab Core Components
 
-1. **Host Handler**: Prepares the environment and executes host-side code.
-2. **Guest Handler**: Prepares and transforms user code for zkVM execution.
-3. **Workflow Manager**: Coordinates the overall proof generation process.
-4. **Backend Connectors**: Adapters for different zkVM implementations.
-5. **I/O Handling Layer**: Facilitates data transfer between host and guest environments.
-6. **Telemetry Collection**: Gathers performance metrics and verification data.
+The ProofLab codebase is organized as a workspace with multiple crates:
+
+1. **prooflab crate**: Main CLI tool and zkVM integration
+   - **Host Handler**: Prepares the environment and executes host-side code
+   - **Guest Handler**: Prepares and transforms user code for zkVM execution
+   - **Workflow Manager**: Coordinates the overall proof generation process
+   - **Backend Connectors**: Adapters for different zkVM implementations
+   - **Telemetry Collection**: Gathers performance metrics and verification data
+
+2. **prooflab_io crate**: I/O marshalling between host and guest programs
+   - Provides serialization/deserialization for data exchange
+   - Exposes a consistent API for both host and guest environments
 
 ## Execution Flow
 
-ProofLab-rs follows a six-phase execution flow:
+ProofLab follows a six-phase execution flow:
 
 ```
 ┌──────────┐    ┌──────────┐    ┌───────────┐    ┌──────────┐    ┌───────────┐    ┌───────────┐

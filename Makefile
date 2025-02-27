@@ -18,6 +18,12 @@ install: install_prooflab
 
 install_prooflab:
 	@curl -L https://raw.githubusercontent.com/ProofLabDev/prooflab-rs/main/install_prooflab.sh | bash
+	
+build:
+	@./build.sh
+
+check:
+	cargo clippy --all -- -D warnings
 
 install_sp1:
 	@curl -L https://sp1.succinct.xyz | bash
@@ -36,136 +42,136 @@ __EXAMPLES__:
 
 # RISC0
 prove_risc0_fibonacci:
-	cargo run --release -- prove-risc0 examples/fibonacci
+	cargo run --release -p prooflab -- prove-risc0 examples/fibonacci
 
 prove_risc0_rsa:
-	cargo run --release -- prove-risc0 examples/rsa
+	cargo run --release -p prooflab -- prove-risc0 examples/rsa
 
 prove_risc0_ecdsa:
-	cargo run --release -- prove-risc0 examples/ecdsa
+	cargo run --release -p prooflab -- prove-risc0 examples/ecdsa
 
 prove_risc0_json:
-	cargo run --release -- prove-risc0 examples/json
+	cargo run --release -p prooflab -- prove-risc0 examples/json
 
 prove_risc0_regex:
-	cargo run --release -- prove-risc0 examples/regex
+	cargo run --release -p prooflab -- prove-risc0 examples/regex
 
 prove_risc0_sha:
-	cargo run --release -- prove-risc0 examples/sha
+	cargo run --release -p prooflab -- prove-risc0 examples/sha
 
 prove_risc0_tendermint:
-	cargo run --release -- prove-risc0 examples/tendermint
+	cargo run --release -p prooflab -- prove-risc0 examples/tendermint
 
 prove_risc0_zkquiz:
-	cargo run --release -- prove-risc0 examples/zkquiz
+	cargo run --release -p prooflab -- prove-risc0 examples/zkquiz
 
 prove_risc0_bubble_sort:
-	cargo run --release -- prove-risc0 examples/bubble_sort
+	cargo run --release -p prooflab -- prove-risc0 examples/bubble_sort
 
 # SP1
 prove_sp1_fibonacci:
-	cargo run --release -- prove-sp1 examples/fibonacci
+	cargo run --release -p prooflab -- prove-sp1 examples/fibonacci
 
 prove_sp1_rsa:
-	cargo run --release -- prove-sp1 examples/rsa
+	cargo run --release -p prooflab -- prove-sp1 examples/rsa
 
 prove_sp1_ecdsa:
-	cargo run --release -- prove-sp1 examples/ecdsa
+	cargo run --release -p prooflab -- prove-sp1 examples/ecdsa
 
 prove_sp1_eddsa:
-	cargo run --release -- prove-sp1 examples/eddsa
+	cargo run --release -p prooflab -- prove-sp1 examples/eddsa
 
 prove_sp1_keccak256:
-	cargo run --release -- prove-sp1 examples/keccak256
+	cargo run --release -p prooflab -- prove-sp1 examples/keccak256
 
 prove_sp1_json:
-	cargo run --release -- prove-sp1 examples/json
+	cargo run --release -p prooflab -- prove-sp1 examples/json
 
 prove_sp1_regex:
-	cargo run --release -- prove-sp1 examples/regex
+	cargo run --release -p prooflab -- prove-sp1 examples/regex
 
 prove_sp1_sha:
-	cargo run --release -- prove-sp1 examples/sha
+	cargo run --release -p prooflab -- prove-sp1 examples/sha
 
 prove_sp1_tendermint:
-	cargo run --release -- prove-sp1 examples/tendermint
+	cargo run --release -p prooflab -- prove-sp1 examples/tendermint
 
 prove_sp1_zkquiz:
-	cargo run --release -- prove-sp1 examples/zkquiz
+	cargo run --release -p prooflab -- prove-sp1 examples/zkquiz
 
 prove_sp1_iseven:
-	cargo run --release -- prove-sp1 examples/is_even
+	cargo run --release -p prooflab -- prove-sp1 examples/is_even
 
 prove_sp1_bubble_sort:
-	cargo run --release -- prove-sp1 examples/bubble_sort
+	cargo run --release -p prooflab -- prove-sp1 examples/bubble_sort
 
 # Benchmark Commands
 benchmark_sp1_fibonacci:
-	cargo run --release -- prove-sp1 examples/fibonacci --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/fibonacci --enable-telemetry
 
 benchmark_sp1_rsa:
-	cargo run --release -- prove-sp1 examples/rsa --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/rsa --enable-telemetry
 
 benchmark_sp1_ecdsa:
-	cargo run --release -- prove-sp1 examples/ecdsa --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/ecdsa --enable-telemetry
 
 benchmark_sp1_eddsa:
-	cargo run --release -- prove-sp1 examples/eddsa --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/eddsa --enable-telemetry
 
 benchmark_sp1_keccak256:
-	cargo run --release -- prove-sp1 examples/keccak256 --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/keccak256 --enable-telemetry
 
 benchmark_sp1_json:
-	cargo run --release -- prove-sp1 examples/json --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/json --enable-telemetry
 
 benchmark_sp1_regex:
-	cargo run --release -- prove-sp1 examples/regex --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/regex --enable-telemetry
 
 benchmark_sp1_sha:
-	cargo run --release -- prove-sp1 examples/sha --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/sha --enable-telemetry
 
 benchmark_sp1_tendermint:
-	cargo run --release -- prove-sp1 examples/tendermint --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/tendermint --enable-telemetry
 
 benchmark_sp1_zkquiz:
-	cargo run --release -- prove-sp1 examples/zkquiz --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/zkquiz --enable-telemetry
 
 benchmark_sp1_iseven:
-	cargo run --release -- prove-sp1 examples/is_even --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/is_even --enable-telemetry
 
 benchmark_sp1_bubble_sort:
-	cargo run --release -- prove-sp1 examples/bubble_sort --enable-telemetry
+	cargo run --release -p prooflab -- prove-sp1 examples/bubble_sort --enable-telemetry
 
 
 benchmark_risc0_fibonacci:
-	cargo run --release -- prove-risc0 examples/fibonacci --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/fibonacci --enable-telemetry
 
 benchmark_risc0_rsa:
-	cargo run --release -- prove-risc0 examples/rsa --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/rsa --enable-telemetry
 
 benchmark_risc0_ecdsa:
-	cargo run --release -- prove-risc0 examples/ecdsa --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/ecdsa --enable-telemetry
 
 benchmark_risc0_json:
-	cargo run --release -- prove-risc0 examples/json --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/json --enable-telemetry
 
 benchmark_risc0_regex:
-	cargo run --release -- prove-risc0 examples/regex --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/regex --enable-telemetry
 
 benchmark_risc0_sha:
-	cargo run --release -- prove-risc0 examples/sha --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/sha --enable-telemetry
 
 benchmark_risc0_tendermint:
-	cargo run --release -- prove-risc0 examples/tendermint --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/tendermint --enable-telemetry
 
 benchmark_risc0_zkquiz:
-	cargo run --release -- prove-risc0 examples/zkquiz --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/zkquiz --enable-telemetry
 
 benchmark_risc0_iseven:
-	cargo run --release -- prove-risc0 examples/is_even --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/is_even --enable-telemetry
 
 benchmark_risc0_bubble_sort:
-	cargo run --release -- prove-risc0 examples/bubble_sort --enable-telemetry
+	cargo run --release -p prooflab -- prove-risc0 examples/bubble_sort --enable-telemetry
 
 # Docker commands
 docker-shell:
@@ -173,7 +179,7 @@ docker-shell:
 		--platform=linux/amd64 \
 		-v prooflab-rs-cargo-registry:/root/.cargo/registry \
 		-v prooflab-rs-cargo-git:/root/.cargo/git \
-		-v "$(PWD)/src:/prooflab-rs/src" \
+		-v "$(PWD)/crates:/prooflab-rs/crates" \
 		-v "$(PWD)/telemetry:/prooflab-rs/telemetry" \
 		-v "$(PWD)/Makefile:/prooflab-rs/Makefile" \
 		-v "$(PWD)/examples:/prooflab-rs/examples" \

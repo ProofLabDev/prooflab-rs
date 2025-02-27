@@ -15,4 +15,4 @@ k256 = { version = "=0.13.3", features = [
     "std",
     "ecdsa",
 ], default_features = false }
-prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git" }
+prooflab_io = { path = "../../crates/prooflab_io" }

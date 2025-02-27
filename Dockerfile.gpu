@@ -38,9 +38,9 @@ WORKDIR /prooflab-rs
 COPY install_prooflab_from_source.sh /prooflab-rs/install_prooflab_from_source.sh
 COPY examples /prooflab-rs/examples
 COPY Makefile /prooflab-rs/Makefile
-COPY src /prooflab-rs/src
+COPY build.sh /prooflab-rs/build.sh
+COPY crates /prooflab-rs/crates
 COPY workspaces /prooflab-rs/workspaces
-COPY prooflab_io /prooflab-rs/prooflab_io
 COPY Cargo.toml /prooflab-rs/Cargo.toml
 COPY Cargo.lock /prooflab-rs/Cargo.lock
 

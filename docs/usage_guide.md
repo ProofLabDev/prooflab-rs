@@ -438,19 +438,222 @@ fn output() {
 }
 ```
 
-### Move Common Logic to a Library
+## Library Support
 
-For larger projects, move shared code to a library:
+For larger projects, moving shared code to a library helps with organization and reusability:
 
 ```
 my_project/
-├── Cargo.toml
+├── Cargo.toml          # Main project manifest
 ├── lib/
-│   ├── Cargo.toml
+│   ├── Cargo.toml      # Library manifest
 │   └── src/
 │       └── lib.rs      # Shared utility functions and data structures
 └── src/
     └── main.rs         # Contains main(), input(), and output() functions
+```
+
+### Creating and Using a Library
+
+#### 1. Set up the library crate
+
+First, create a library directory and initialize it:
+
+```bash
+mkdir -p lib/src
+```
+
+Create `lib/Cargo.toml`:
+
+```toml
+[package]
+name = "my_project_lib"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Add library-specific dependencies
+serde = { version = "1.0", features = ["derive"] }
+```
+
+#### 2. Implement your library
+
+Create `lib/src/lib.rs` with your shared functionality:
+
+```rust
+use serde::{Serialize, Deserialize};
+
+// Define data structures
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Transaction {
+    pub id: u64,
+    pub sender: String,
+    pub receiver: String,
+    pub amount: u64,
+    pub timestamp: u64,
+}
+
+// Implement utility functions
+pub fn verify_transaction(tx: &Transaction) -> bool {
+    // Example validation logic
+    tx.amount > 0 && !tx.sender.is_empty() && !tx.receiver.is_empty()
+}
+
+pub fn calculate_fee(tx: &Transaction) -> u64 {
+    tx.amount / 100  // Example: 1% fee
+}
+
+// More complex functions
+pub fn batch_verify_transactions(txs: &[Transaction]) -> Vec<bool> {
+    txs.iter().map(|tx| verify_transaction(tx)).collect()
+}
+```
+
+#### 3. Configure the main crate to use the library
+
+Update your main `Cargo.toml`:
+
+```toml
+[package]
+name = "my_project"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prooflab_io = { git = "https://github.com/ProofLabDev/prooflab-rs.git", package = "prooflab_io" }
+my_project_lib = { path = "./lib" }
+serde = { version = "1.0", features = ["derive"] }
+```
+
+#### 4. Use the library in your main program
+
+Now you can use the library in your `src/main.rs`:
+
+```rust
+use prooflab_io;
+use my_project_lib::{Transaction, verify_transaction, batch_verify_transactions};
+use serde::{Serialize, Deserialize};
+
+fn main() {
+    // Read transactions from the host
+    let transactions: Vec<Transaction> = prooflab_io::read();
+    
+    // Use library functions to process them
+    let verification_results = batch_verify_transactions(&transactions);
+    
+    // Calculate total fees
+    let total_fee: u64 = transactions.iter()
+        .filter(|tx| verify_transaction(tx))
+        .map(|tx| my_project_lib::calculate_fee(tx))
+        .sum();
+    
+    // Commit results
+    prooflab_io::commit(&verification_results);
+    prooflab_io::commit(&total_fee);
+}
+
+fn input() {
+    // Create sample transactions
+    let transactions = vec![
+        Transaction {
+            id: 1,
+            sender: "Alice".to_string(),
+            receiver: "Bob".to_string(),
+            amount: 1000,
+            timestamp: 1677592291,
+        },
+        Transaction {
+            id: 2,
+            sender: "Charlie".to_string(),
+            receiver: "Dave".to_string(),
+            amount: 500,
+            timestamp: 1677592350,
+        },
+        Transaction {
+            id: 3,
+            sender: "".to_string(),  // Invalid transaction
+            receiver: "Eve".to_string(),
+            amount: 200,
+            timestamp: 1677592400,
+        },
+    ];
+    
+    prooflab_io::write(&transactions);
+}
+
+fn output() {
+    let (verification_results, total_fee): (Vec<bool>, u64) = prooflab_io::out();
+    
+    println!("Transaction verification results:");
+    for (i, is_valid) in verification_results.iter().enumerate() {
+        println!("Transaction {}: {}", i + 1, if *is_valid { "Valid" } else { "Invalid" });
+    }
+    
+    println!("Total fees collected: {}", total_fee);
+}
+```
+
+### When to Use Libraries
+
+Libraries are especially useful for:
+
+1. **Shared Data Structures**: Define transaction formats, blockchain states, etc.
+2. **Common Algorithms**: Cryptographic primitives, validation routines, etc.
+3. **Business Logic**: Rules and processes that need to be consistently applied
+4. **Testing**: Libraries can be tested independently of the zkVM environment
+
+### Testing Your Library
+
+Since library code is pure Rust, you can test it using standard Rust testing tools:
+
+```rust
+// In lib/src/lib.rs
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_verify_transaction() {
+        let valid_tx = Transaction {
+            id: 1,
+            sender: "Alice".to_string(),
+            receiver: "Bob".to_string(),
+            amount: 1000,
+            timestamp: 1677592291,
+        };
+        
+        let invalid_tx = Transaction {
+            id: 2,
+            sender: "".to_string(),
+            receiver: "Dave".to_string(),
+            amount: 500,
+            timestamp: 1677592350,
+        };
+        
+        assert!(verify_transaction(&valid_tx));
+        assert!(!verify_transaction(&invalid_tx));
+    }
+    
+    #[test]
+    fn test_calculate_fee() {
+        let tx = Transaction {
+            id: 1,
+            sender: "Alice".to_string(),
+            receiver: "Bob".to_string(),
+            amount: 1000,
+            timestamp: 1677592291,
+        };
+        
+        assert_eq!(calculate_fee(&tx), 10); // 1% of 1000
+    }
+}
+```
+
+Test your library with:
+
+```bash
+cd lib
+cargo test
 ```
 
 ### Use Clear Type Annotations

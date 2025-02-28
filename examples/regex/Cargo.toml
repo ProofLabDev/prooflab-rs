@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 regex = "1.10.3"
-prooflab_io = { path = "../../crates/prooflab_io" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }

@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 ed25519-dalek = { version = "2.1.1", features = ["digest", "rand_core", "serde", "signature"] }
 rand = "0.8"
-prooflab_io = { path = "../../crates/prooflab_io" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }

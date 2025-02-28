@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.204", default-features = false, features = ["derive"] }
 sha3 = { version = "0.10.8", default-features = false }
-prooflab_io = { path = "../../crates/prooflab_io" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }

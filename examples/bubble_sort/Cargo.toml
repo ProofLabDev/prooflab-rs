@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-prooflab_io = { path = "../../crates/prooflab_io" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }

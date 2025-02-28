@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
-prooflab_io = { path = "../../crates/prooflab_io" }
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }
 tendermint-light-client-verifier = { version = "0.39.1", default-features = false, features = [
     "rust-crypto",
 ] }

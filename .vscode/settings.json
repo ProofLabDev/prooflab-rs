@@ -29,6 +29,8 @@
         "examples/sha/Cargo.toml",
         "examples/regex/Cargo.toml",
         "examples/rsa/Cargo.toml",
+        "examples/secp256r1_commonware/Cargo.toml",
+        "examples/ed25519_commonware/Cargo.toml",
         "examples/ecdsa/Cargo.toml",
         "examples/eddsa/Cargo.toml",
         "examples/json/Cargo.toml",

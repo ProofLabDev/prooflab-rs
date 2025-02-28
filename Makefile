@@ -36,6 +36,10 @@ install_risc0:
 	@rzup install
 	@cargo risczero --version
 
+install_jolt:
+	@echo "Installing Jolt from source"
+	@cargo install --git https://github.com/a16z/jolt jolt-cli
+
 all: install
 
 __EXAMPLES__:
@@ -104,6 +108,16 @@ prove_sp1_iseven:
 
 prove_sp1_bubble_sort:
 	cargo run --release -p prooflab -- prove-sp1 examples/bubble_sort
+
+# JOLT
+prove_jolt_fibonacci:
+	cargo run --release -p prooflab -- prove-jolt examples/fibonacci
+
+prove_jolt_is_even:
+	cargo run --release -p prooflab -- prove-jolt examples/is_even
+
+prove_jolt_bubble_sort:
+	cargo run --release -p prooflab -- prove-jolt examples/bubble_sort
 
 # Benchmark Commands
 benchmark_sp1_fibonacci:

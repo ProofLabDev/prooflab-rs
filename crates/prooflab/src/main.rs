@@ -27,6 +27,8 @@ enum Commands {
     ProveSp1(ProofArgs),
     #[clap(about = "Generate a proof of execution of a program using RISC0")]
     ProveRisc0(ProofArgs),
+    #[clap(about = "Generate a proof of execution of a program using Jolt")]
+    ProveJolt(ProofArgs),
 }
 
 #[tokio::main]
@@ -35,6 +37,261 @@ async fn main() -> io::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
+        Commands::ProveJolt(args) => {
+            info!("Proving with Jolt, program in: {}", args.guest_path);
+
+            let telemetry = TelemetryCollector::new(
+                "JOLT",
+                args.precompiles,
+                args.gpu,
+                args.enable_telemetry,
+                &args.guest_path,
+            );
+            let workspace_start = Instant::now();
+
+            // Perform sanitation checks on directory
+            let proof_data_dir = PathBuf::from(&args.proof_data_directory_path);
+            if !proof_data_dir.exists() {
+                info!("Saving Proofs to: {:?}", &args.proof_data_directory_path);
+                std::fs::create_dir_all(proof_data_dir)?;
+            }
+            if utils::validate_directory_structure(&args.guest_path) {
+                let Some(home_dir) = dirs::home_dir() else {
+                    error!("Failed to locate home directory");
+                    return Ok(());
+                };
+                let Ok(current_dir) = std::env::current_dir() else {
+                    error!("Failed to locate current directory");
+                    return Ok(());
+                };
+                let home_dir = home_dir.join(".prooflab");
+                utils::prepare_workspace(
+                    &PathBuf::from(&args.guest_path),
+                    &home_dir.join(jolt::JOLT_SRC_DIR),
+                    &home_dir.join(jolt::JOLT_GUEST_CARGO_TOML),
+                    &home_dir.join("workspaces/jolt/script"),
+                    &home_dir.join("workspaces/jolt/script/Cargo.toml"),
+                    &home_dir.join(jolt::JOLT_BASE_HOST_CARGO_TOML),
+                    &home_dir.join(jolt::JOLT_BASE_GUEST_CARGO_TOML),
+                )?;
+
+                telemetry.record_workspace_setup(workspace_start.elapsed());
+
+                let compilation_start = Instant::now();
+                let Ok(imports) = utils::get_imports(&home_dir.join(jolt::JOLT_GUEST_MAIN)) else {
+                    error!("Failed to extract imports");
+                    return Ok(());
+                };
+
+                let main_path = home_dir.join(jolt::JOLT_GUEST_MAIN);
+                let Ok(function_bodies) = utils::extract_function_bodies(
+                    &main_path,
+                    vec![
+                        "fn main()".to_string(),
+                        "fn input()".to_string(),
+                        "fn output()".to_string(),
+                    ],
+                ) else {
+                    error!("Failed to extract function bodies");
+                    return Ok(());
+                };
+
+                utils::prepare_guest(
+                    &imports,
+                    &function_bodies[0],
+                    jolt::JOLT_GUEST_PROGRAM_HEADER,
+                    jolt::JOLT_IO_READ,
+                    jolt::JOLT_IO_COMMIT,
+                    &home_dir.join(jolt::JOLT_GUEST_MAIN),
+                )?;
+                jolt::prepare_host(
+                    &function_bodies[1],
+                    &function_bodies[2],
+                    &imports,
+                    &home_dir.join(jolt::JOLT_BASE_HOST),
+                    &home_dir.join(jolt::JOLT_HOST_MAIN),
+                )?;
+
+                if args.precompiles {
+                    let mut toml_file = OpenOptions::new()
+                        .append(true)
+                        .open(home_dir.join(jolt::JOLT_GUEST_CARGO_TOML))?;
+
+                    writeln!(toml_file, "{}", jolt::JOLT_ACCELERATION_IMPORT)?;
+                }
+
+                let script_dir = home_dir.join(jolt::JOLT_SCRIPT_DIR);
+
+                // Build the program first
+                let build_result = jolt::build_jolt_program(&script_dir)?;
+                if !build_result.success() {
+                    error!("Jolt program build failed");
+                    return Ok(());
+                }
+                info!("Jolt program built successfully");
+                telemetry.record_compilation(compilation_start.elapsed());
+
+                // Record compiled program size
+                if let Ok(metadata) = fs::metadata(home_dir.join(
+                    "workspaces/jolt/program/target/release/guest",
+                )) {
+                    telemetry.record_program_size(metadata.len());
+                    info!("Recorded Jolt program size: {} bytes", metadata.len());
+                } else {
+                    error!("Failed to read Jolt program size");
+                }
+
+                let proof_gen_start = Instant::now();
+
+                // Start resource sampling in a separate thread
+                let tx = telemetry.start_resource_monitoring();
+
+                let result = jolt::generate_jolt_proof(&script_dir, &current_dir, args.gpu)?;
+
+                // Stop resource sampling
+                let _ = tx.send(());
+
+                telemetry.record_proof_generation(proof_gen_start.elapsed());
+
+                if result.success() {
+                    info!("Jolt proof generated");
+
+                    // Read and record Jolt metrics
+                    if let Ok(jolt_metrics) = jolt::read_metrics() {
+                        telemetry.record_zk_metrics(
+                            Some(jolt_metrics.cycles),
+                            Some(jolt_metrics.num_segments),
+                            Some(jolt_metrics.core_proof_size),
+                            Some(jolt_metrics.recursive_proof_size),
+                        );
+                        telemetry.record_proof_timings(
+                            jolt_metrics.core_prove_duration,
+                            jolt_metrics.core_verify_duration,
+                            Some(jolt_metrics.compress_prove_duration),
+                            Some(jolt_metrics.compress_verify_duration),
+                        );
+                    }
+
+                    utils::replace(
+                        &home_dir.join(jolt::JOLT_GUEST_CARGO_TOML),
+                        jolt::JOLT_ACCELERATION_IMPORT,
+                        "",
+                    )?;
+
+                    // Submit to aligned
+                    if args.submit_to_aligned {
+                        submit_proof_to_aligned(
+                            jolt::JOLT_PROOF_PATH,
+                            jolt::JOLT_ELF_PATH,
+                            Some(jolt::JOLT_PUB_INPUT_PATH),
+                            args,
+                            ProvingSystemId::JOLT,
+                        )
+                        .await
+                        .map_err(|e| {
+                            error!("Proof not submitted to Aligned");
+                            io::Error::other(e.to_string())
+                        })?;
+                        info!("Jolt proof submitted and verified on Aligned");
+                    }
+
+                    // Save telemetry data if enabled
+                    if let Some(telemetry_data) = telemetry.finalize() {
+                        if args.enable_telemetry {
+                            fs::create_dir_all(&args.telemetry_output_path)?;
+                            let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+                            let package_name = telemetry_data
+                                .program
+                                .guest_metadata
+                                .package_name
+                                .as_deref()
+                                .unwrap_or("unknown");
+                            let instance_type = telemetry_data
+                                .system_info
+                                .ec2_instance_type
+                                .as_deref()
+                                .unwrap_or("local");
+                            let telemetry_file = format!(
+                                "{}/jolt_telemetry_{}_{}_{}_{}.json",
+                                args.telemetry_output_path,
+                                package_name,
+                                instance_type,
+                                timestamp,
+                                if result.success() {
+                                    "success"
+                                } else {
+                                    "failed"
+                                }
+                            );
+                            fs::write(
+                                &telemetry_file,
+                                serde_json::to_string_pretty(&telemetry_data)?,
+                            )?;
+                            info!("Telemetry data saved to: {}", telemetry_file);
+                        }
+                    }
+
+                    std::fs::copy(
+                        home_dir.join(jolt::JOLT_BASE_HOST_FILE),
+                        home_dir.join(jolt::JOLT_HOST_MAIN),
+                    )
+                    .inspect_err(|_e| {
+                        error!("Failed to clear Jolt host file");
+                    })?;
+                    return Ok(());
+                }
+                error!(
+                    "Jolt proof generation failed with exit code: {}",
+                    result.code().unwrap_or(-1)
+                );
+
+                // Save telemetry data even on failure
+                if let Some(telemetry_data) = telemetry.finalize() {
+                    if args.enable_telemetry {
+                        fs::create_dir_all(&args.telemetry_output_path)?;
+                        let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+                        let package_name = telemetry_data
+                            .program
+                            .guest_metadata
+                            .package_name
+                            .as_deref()
+                            .unwrap_or("unknown");
+                        let instance_type = telemetry_data
+                            .system_info
+                            .ec2_instance_type
+                            .as_deref()
+                            .unwrap_or("local");
+                        let telemetry_file = format!(
+                            "{}/jolt_telemetry_{}_{}_{}_{}.json",
+                            args.telemetry_output_path,
+                            package_name,
+                            instance_type,
+                            timestamp,
+                            if result.success() {
+                                "success"
+                            } else {
+                                "failed"
+                            }
+                        );
+                        fs::write(
+                            &telemetry_file,
+                            serde_json::to_string_pretty(&telemetry_data)?,
+                        )?;
+                        info!("Telemetry data saved to: {}", telemetry_file);
+                    }
+                }
+
+                // Clear host
+                std::fs::copy(
+                    home_dir.join(jolt::JOLT_BASE_HOST_FILE),
+                    home_dir.join(jolt::JOLT_HOST_MAIN),
+                )?;
+                return Ok(());
+            } else {
+                error!("Invalid directory structure. Please ensure your program directory meets the minimum requirements.");
+                return Ok(());
+            }
+        },
         Commands::ProveSp1(args) => {
             info!("Proving with SP1, program in: {}", args.guest_path);
 

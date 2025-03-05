@@ -106,6 +106,8 @@ prove_sp1_bubble_sort:
 	cargo run --release -p prooflab -- prove-sp1 examples/bubble_sort
 
 # Benchmark Commands
+
+# SP1
 benchmark_sp1_fibonacci:
 	cargo run --release -p prooflab -- prove-sp1 examples/fibonacci --enable-telemetry
 
@@ -142,7 +144,16 @@ benchmark_sp1_iseven:
 benchmark_sp1_bubble_sort:
 	cargo run --release -p prooflab -- prove-sp1 examples/bubble_sort --enable-telemetry
 
+benchmark_sp1_ed25519_commonware:
+	cargo run --release -p prooflab -- prove-sp1 examples/ed25519_commonware --enable-telemetry
 
+benchmark_sp1_secp256r1_commonware:
+	cargo run --release -p prooflab -- prove-sp1 examples/secp256r1_commonware --enable-telemetry
+
+benchmark_sp1_helios_light_client:
+	cargo run --release -p prooflab -- prove-sp1 examples/helios_light_client --enable-telemetry
+
+# RISC0
 benchmark_risc0_fibonacci:
 	cargo run --release -p prooflab -- prove-risc0 examples/fibonacci --enable-telemetry
 
@@ -171,7 +182,16 @@ benchmark_risc0_iseven:
 	cargo run --release -p prooflab -- prove-risc0 examples/is_even --enable-telemetry
 
 benchmark_risc0_bubble_sort:
-	cargo run --release -p prooflab -- prove-risc0 examples/bubble_sort --enable-telemetry
+	RUST_LOG=info cargo run --release -p prooflab -- prove-risc0 examples/bubble_sort --enable-telemetry
+
+benchmark_risc0_ed25519_commonware:
+	cargo run --release -p prooflab -- prove-risc0 examples/ed25519_commonware --enable-telemetry
+
+benchmark_risc0_secp256r1_commonware:
+	cargo run --release -p prooflab -- prove-risc0 examples/secp256r1_commonware --enable-telemetry
+
+benchmark_risc0_helios_light_client:
+	cargo run --release -p prooflab -- prove-risc0 examples/helios_light_client --enable-telemetry
 
 # Docker commands
 docker-shell:

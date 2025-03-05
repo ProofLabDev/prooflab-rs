@@ -1,5 +1,4 @@
 use prooflab::{risc0, sp1};
-use std::path::PathBuf;
 use std::time::Duration;
 
 // This is a mock test file for the sp1 and risc0 modules
@@ -13,11 +12,11 @@ fn test_sp1_constants() {
     assert!(!sp1::SP1_SRC_DIR.is_empty());
     assert!(!sp1::SP1_GUEST_MAIN.is_empty());
     assert!(!sp1::SP1_HOST_MAIN.is_empty());
-    
+
     // Test SP1 IO constants
     assert!(!sp1::SP1_IO_READ.is_empty());
     assert!(!sp1::SP1_IO_COMMIT.is_empty());
-    
+
     // Test SP1 path constants for proofs
     assert!(!sp1::SP1_PROOF_PATH.is_empty());
     assert!(!sp1::SP1_ELF_PATH.is_empty());
@@ -31,11 +30,11 @@ fn test_risc0_constants() {
     assert!(!risc0::RISC0_SRC_DIR.is_empty());
     assert!(!risc0::RISC0_GUEST_MAIN.is_empty());
     assert!(!risc0::RISC0_HOST_MAIN.is_empty());
-    
+
     // Test RISC0 IO constants
     assert!(!risc0::RISC0_IO_READ.is_empty());
     assert!(!risc0::RISC0_IO_COMMIT.is_empty());
-    
+
     // Test RISC0 path constants for proofs
     assert!(!risc0::PROOF_FILE_PATH.is_empty());
     assert!(!risc0::IMAGE_ID_FILE_PATH.is_empty());
@@ -46,7 +45,7 @@ fn test_risc0_constants() {
 #[test]
 fn test_sp1_metrics_defaults() {
     let metrics = sp1::SP1Metrics::default();
-    
+
     assert_eq!(metrics.cycles, 0);
     assert_eq!(metrics.num_segments, 0);
     assert_eq!(metrics.core_proof_size, 0);
@@ -70,8 +69,10 @@ fn test_sp1_metrics_from_json() {
         core_verify_duration: Duration::from_secs(1),
         compress_prove_duration: Duration::from_secs(2),
         compress_verify_duration: Duration::from_secs(1),
+        input_size: 100,
+        output_size: 200,
     };
-    
+
     // Check metrics fields
     assert_eq!(metrics.cycles, 1000);
     assert_eq!(metrics.num_segments, 2);
@@ -81,6 +82,8 @@ fn test_sp1_metrics_from_json() {
     assert_eq!(metrics.core_verify_duration, Duration::from_secs(1));
     assert_eq!(metrics.compress_prove_duration, Duration::from_secs(2));
     assert_eq!(metrics.compress_verify_duration, Duration::from_secs(1));
+    assert_eq!(metrics.input_size, 100);
+    assert_eq!(metrics.output_size, 200);
 }
 
 // Test Risc0Metrics struct directly
@@ -96,8 +99,10 @@ fn test_risc0_metrics_from_json() {
         core_verify_duration: Duration::from_secs(1),
         compress_prove_duration: Duration::from_secs(2),
         compress_verify_duration: Duration::from_secs(1),
+        input_size: 100,
+        output_size: 200,
     };
-    
+
     // Check metrics fields
     assert_eq!(metrics.cycles, 1000);
     assert_eq!(metrics.num_segments, 2);

@@ -2,7 +2,6 @@ use log::{debug, info};
 use nvml_wrapper::Nvml;
 use serde::Serialize;
 use std::fs;
-use std::io::Read;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration as StdDuration;
@@ -31,20 +30,21 @@ pub struct ZkMetrics {
     pub num_segments: Option<usize>,         // Number of segments/shards
     pub core_proof_size: Option<usize>,      // Size of the core proof in bytes
     pub recursive_proof_size: Option<usize>, // Size of the recursive/compressed proof in bytes
-    pub execution_speed: Option<f64>,        // Cycles per second during proof generation
+    pub prover_throughput: Option<f64>,      // Cycles per second during proof generation
     pub compiled_program_size: Option<u64>,  // Size of the compiled program in bytes
+    pub input_size: Option<usize>,           // Size of the input data in bytes
+    pub output_size: Option<usize>,          // Size of the output data in bytes
 }
 
 #[derive(Default, Serialize, Clone)]
 pub struct TimingMetrics {
     pub workspace_setup_duration: Option<Duration>,
     pub compilation_duration: Option<Duration>,
-    pub proof_generation_duration: Option<Duration>,
     pub core_prove_duration: Option<Duration>, // Time to generate initial proof
     pub core_verify_duration: Option<Duration>, // Time to verify initial proof
     pub compress_prove_duration: Option<Duration>, // Time to generate compressed/recursive proof
     pub compress_verify_duration: Option<Duration>, // Time to verify compressed/recursive proof
-    pub total_duration: Option<Duration>,
+    pub total_duration: Option<Duration>,      // Total duration of all operations
 }
 
 #[derive(Default, Serialize, Clone)]
@@ -457,15 +457,6 @@ impl TelemetryCollector {
         }
     }
 
-    pub fn record_proof_generation(&self, duration: Duration) {
-        if !self.enabled {
-            return;
-        }
-        if let Ok(mut metrics) = self.metrics.lock() {
-            metrics.timing.proof_generation_duration = Some(duration);
-        }
-    }
-
     pub fn sample_resources(&mut self) {
         if !self.enabled {
             return;
@@ -520,26 +511,73 @@ impl TelemetryCollector {
         num_segments: Option<usize>,
         core_proof_size: Option<usize>,
         recursive_proof_size: Option<usize>,
+        input_size: Option<usize>,
+        output_size: Option<usize>,
     ) {
         if !self.enabled {
             return;
         }
-        if let Ok(mut metrics) = self.metrics.lock() {
-            let proof_duration = metrics
-                .timing
-                .proof_generation_duration
-                .unwrap_or(Duration::from_secs(0));
-            let execution_speed = cycles.map(|c| c as f64 / proof_duration.as_secs_f64());
-            let compiled_program_size = metrics.zk_metrics.compiled_program_size;
 
+        info!(
+            "Recording ZK metrics - cycles: {:?}, segments: {:?}, input: {:?} bytes, output: {:?} bytes",
+            cycles, num_segments, input_size, output_size
+        );
+
+        if let Ok(mut metrics) = self.metrics.lock() {
+            // Store metrics without calculating throughput
+            let compiled_program_size = metrics.zk_metrics.compiled_program_size;
             metrics.zk_metrics = ZkMetrics {
                 cycles,
                 num_segments,
                 core_proof_size,
                 recursive_proof_size,
-                execution_speed,
+                prover_throughput: None, // Will be calculated later
                 compiled_program_size,
+                input_size,
+                output_size,
             };
+        }
+    }
+
+    pub fn calculate_throughput(&self) {
+        if !self.enabled {
+            return;
+        }
+
+        if let Ok(mut metrics) = self.metrics.lock() {
+            // Only proceed if we have cycles data
+            if let Some(cycles) = metrics.zk_metrics.cycles {
+                // Calculate prover throughput based on available timing data
+                let prover_throughput = if let (Some(core_dur), Some(compress_dur)) = (
+                    metrics.timing.core_prove_duration,
+                    metrics.timing.compress_prove_duration,
+                ) {
+                    let total_duration = core_dur + compress_dur;
+                    info!(
+                        "Calculating throughput: {} cycles / {:.2}s (core+compress)",
+                        cycles,
+                        total_duration.as_secs_f64()
+                    );
+                    Some(cycles as f64 / total_duration.as_secs_f64())
+                } else if let Some(core_dur) = metrics.timing.core_prove_duration {
+                    // If we only have core_prove_duration
+                    info!(
+                        "Calculating throughput: {} cycles / {:.2}s (core only)",
+                        cycles,
+                        core_dur.as_secs_f64()
+                    );
+                    Some(cycles as f64 / core_dur.as_secs_f64())
+                } else {
+                    info!("Cannot calculate throughput - missing duration data");
+                    None
+                };
+
+                if let Some(throughput) = prover_throughput {
+                    info!("Prover throughput: {:.2} cycles/second", throughput);
+                    // Update the metrics with the calculated throughput
+                    metrics.zk_metrics.prover_throughput = Some(throughput);
+                }
+            }
         }
     }
 
@@ -553,6 +591,10 @@ impl TelemetryCollector {
         if !self.enabled {
             return;
         }
+
+        info!("Recording proof timings - core_prove: {:?}, core_verify: {:?}, compress_prove: {:?}, compress_verify: {:?}", 
+               core_prove, core_verify, compress_prove, compress_verify);
+
         if let Ok(mut metrics) = self.metrics.lock() {
             metrics.timing.core_prove_duration = Some(core_prove);
             metrics.timing.core_verify_duration = Some(core_verify);
@@ -708,7 +750,7 @@ impl TelemetryCollector {
         let zk = &final_metrics.zk_metrics;
         if let Some(cycles) = zk.cycles {
             info!("VM Cycles: {}", cycles);
-            if let Some(speed) = zk.execution_speed {
+            if let Some(speed) = zk.prover_throughput {
                 info!("Execution Speed: {:.2} cycles/second", speed);
             }
         }
@@ -724,6 +766,12 @@ impl TelemetryCollector {
         if let Some(size) = zk.compiled_program_size {
             info!("Compiled Program Size: {} bytes", size);
         }
+        if let Some(size) = zk.input_size {
+            info!("Input Size: {} bytes", size);
+        }
+        if let Some(size) = zk.output_size {
+            info!("Output Size: {} bytes", size);
+        }
 
         // Log timings
         let timing = &final_metrics.timing;
@@ -733,9 +781,6 @@ impl TelemetryCollector {
         }
         if let Some(d) = timing.compilation_duration {
             info!("Compilation: {:?}", d);
-        }
-        if let Some(d) = timing.proof_generation_duration {
-            info!("Total Proof Generation: {:?}", d);
         }
         if let Some(d) = timing.core_prove_duration {
             info!("Core Proof Generation: {:?}", d);

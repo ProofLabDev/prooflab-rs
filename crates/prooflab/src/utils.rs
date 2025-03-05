@@ -2,7 +2,7 @@ use log::error;
 use regex::Regex;
 use std::{
     fs::{self, File, OpenOptions},
-    io::{self, BufRead, BufReader, ErrorKind, Read, Seek, Write},
+    io::{self, BufRead, BufReader, Read, Seek, Write},
     path::{Path, PathBuf},
 };
 
@@ -365,38 +365,42 @@ fn copy_patch_section(toml_path: &Path, guest_toml_path: &Path) -> io::Result<()
                     // We need to append the new patches to the existing patch section
                     // First, read the whole file
                     let mut updated_content = dest_content.clone();
-                    
+
                     // Insert new patches at the end of the existing patch section
                     let insert_pos = dest_start + dest_end;
                     updated_content.insert_str(insert_pos, &format!("\n{}", new_patches));
-                    
+
                     // Write back the updated content
                     let mut dest_file = fs::File::create(guest_toml_path)?;
                     dest_file.write_all(updated_content.as_bytes())?;
                 }
             }
-            
+
             Ok(())
         }
-        None => Ok(()),  // No patch section to copy, that's ok
+        None => Ok(()), // No patch section to copy, that's ok
     }
 }
 
 /// Copies auxiliary files referenced by include_bytes! and similar macros
-fn copy_auxiliary_files(guest_path: &Path, workspace_guest_dir: &Path, workspace_host_dir: &Path) -> io::Result<()> {
+fn copy_auxiliary_files(
+    guest_path: &Path,
+    workspace_guest_dir: &Path,
+    workspace_host_dir: &Path,
+) -> io::Result<()> {
     // Read all Rust source files to find include_bytes! and include_str! macros
     let src_dir = guest_path.join("src");
     let mut include_patterns = Vec::new();
-    
+
     if src_dir.exists() {
         visit_dir_for_includes(&src_dir, &mut include_patterns)?;
     }
-    
+
     // Process each include pattern found
     for path_str in include_patterns {
         // Remove quotes and whitespace
         let path_str = path_str.trim().trim_matches('"').trim_matches('\'');
-        
+
         // Make relative paths absolute from the guest path
         let abs_source_path = if Path::new(path_str).is_absolute() {
             PathBuf::from(path_str)
@@ -408,13 +412,13 @@ fn copy_auxiliary_files(guest_path: &Path, workspace_guest_dir: &Path, workspace
                 guest_path.join("src").join(path_str)
             }
         };
-        
+
         // Skip if file doesn't exist
         if !abs_source_path.exists() {
             error!("Referenced file not found: {:?}", abs_source_path);
             continue;
         }
-        
+
         // Determine the destination path in workspace
         let rel_path = if let Ok(rel) = abs_source_path.strip_prefix(guest_path) {
             rel
@@ -422,10 +426,10 @@ fn copy_auxiliary_files(guest_path: &Path, workspace_guest_dir: &Path, workspace
             // For files outside the guest path, place them at the root of workspace
             Path::new(abs_source_path.file_name().unwrap_or_default())
         };
-        
+
         let workspace_guest_dest = workspace_guest_dir.join(rel_path);
         let workspace_host_dest = workspace_host_dir.join(rel_path);
-        
+
         // Create parent directories if needed
         if let Some(parent) = workspace_guest_dest.parent() {
             fs::create_dir_all(parent)?;
@@ -433,13 +437,16 @@ fn copy_auxiliary_files(guest_path: &Path, workspace_guest_dir: &Path, workspace
         if let Some(parent) = workspace_host_dest.parent() {
             fs::create_dir_all(parent)?;
         }
-        
+
         // Copy the file
         fs::copy(&abs_source_path, &workspace_guest_dest)?;
         fs::copy(&abs_source_path, &workspace_host_dest)?;
-        println!("Copied auxiliary file: {:?} -> {:?}", abs_source_path, workspace_guest_dest);
+        println!(
+            "Copied auxiliary file: {:?} -> {:?}",
+            abs_source_path, workspace_guest_dest
+        );
     }
-    
+
     Ok(())
 }
 
@@ -449,7 +456,7 @@ fn visit_dir_for_includes(dir: &Path, patterns: &mut Vec<String>) -> io::Result<
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
-            
+
             if path.is_dir() {
                 visit_dir_for_includes(&path, patterns)?;
             } else if let Some(ext) = path.extension() {
@@ -465,25 +472,25 @@ fn visit_dir_for_includes(dir: &Path, patterns: &mut Vec<String>) -> io::Result<
 /// Searches a Rust file for include_bytes! and include_str! directives
 fn find_includes_in_file(file_path: &Path, patterns: &mut Vec<String>) -> io::Result<()> {
     let content = fs::read_to_string(file_path)?;
-    
+
     // Regular expressions to find include_bytes! and include_str! macros
     let re_bytes = Regex::new(r#"include_bytes!\s*\(\s*(["'].*?["'])\s*\)"#).unwrap();
     let re_str = Regex::new(r#"include_str!\s*\(\s*(["'].*?["'])\s*\)"#).unwrap();
-    
+
     // Extract the paths from include_bytes! macros
     for cap in re_bytes.captures_iter(&content) {
         if let Some(m) = cap.get(1) {
             patterns.push(m.as_str().to_string());
         }
     }
-    
+
     // Extract the paths from include_str! macros
     for cap in re_str.captures_iter(&content) {
         if let Some(m) = cap.get(1) {
             patterns.push(m.as_str().to_string());
         }
     }
-    
+
     Ok(())
 }
 
@@ -512,7 +519,7 @@ pub fn prepare_workspace(
             "Required base template files not found. Please reinstall ProofLab.",
         ));
     }
-    
+
     let workspace_guest_src_dir = workspace_guest_dir.join("src");
     let workspace_host_src_dir = workspace_host_dir.join("src");
 
@@ -535,7 +542,7 @@ pub fn prepare_workspace(
             }
         }
     }
-    
+
     if let Ok(entries) = fs::read_dir(&workspace_host_src_dir) {
         for entry in entries {
             if let Ok(entry) = entry {
@@ -561,7 +568,7 @@ pub fn prepare_workspace(
                 if file_name != "metrics.rs" {
                     let guest_dest = workspace_guest_src_dir.join(file_name);
                     let host_dest = workspace_host_src_dir.join(file_name);
-                    
+
                     if path.is_file() {
                         let _ = fs::copy(&path, &guest_dest);
                         let _ = fs::copy(&path, &host_dest);
@@ -593,15 +600,21 @@ pub fn prepare_workspace(
     match fs::copy(base_guest_toml_dir, program_toml_dir) {
         Ok(_) => {}
         Err(e) => {
-            error!("Failed to copy guest toml from {:?} to {:?}: {:?}", base_guest_toml_dir, program_toml_dir, e);
+            error!(
+                "Failed to copy guest toml from {:?} to {:?}: {:?}",
+                base_guest_toml_dir, program_toml_dir, e
+            );
             return Err(e);
         }
     }
-    
+
     match fs::copy(base_host_toml_dir, host_toml_dir) {
         Ok(_) => {}
         Err(e) => {
-            error!("Failed to copy host toml from {:?} to {:?}: {:?}", base_host_toml_dir, host_toml_dir, e);
+            error!(
+                "Failed to copy host toml from {:?} to {:?}: {:?}",
+                base_host_toml_dir, host_toml_dir, e
+            );
             return Err(e);
         }
     }
@@ -612,7 +625,7 @@ pub fn prepare_workspace(
         error!("Failed to copy dependencies to program toml: {:?}", e);
         return Err(e);
     }
-    
+
     if let Err(e) = copy_dependencies(&toml_path, host_toml_dir) {
         error!("Failed to copy dependencies to host toml: {:?}", e);
         return Err(e);
@@ -623,24 +636,30 @@ pub fn prepare_workspace(
         error!("Failed to copy patch section to program toml: {:?}", e);
         return Err(e);
     }
-    
+
     if let Err(e) = copy_patch_section(&toml_path, host_toml_dir) {
         error!("Failed to copy patch section to host toml: {:?}", e);
         return Err(e);
     }
-    
+
     // Handle lib directory if it exists - copy patches from lib Cargo.toml as well
     let lib_dir_path = guest_path.join("lib");
     let lib_toml_path = lib_dir_path.join("Cargo.toml");
     if Path::new(&lib_toml_path).exists() {
         // Copy patches from lib/Cargo.toml
         if let Err(e) = copy_patch_section(&lib_toml_path, program_toml_dir) {
-            error!("Failed to copy patch section from lib toml to program toml: {:?}", e);
+            error!(
+                "Failed to copy patch section from lib toml to program toml: {:?}",
+                e
+            );
             return Err(e);
         }
-        
+
         if let Err(e) = copy_patch_section(&lib_toml_path, host_toml_dir) {
-            error!("Failed to copy patch section from lib toml to host toml: {:?}", e);
+            error!(
+                "Failed to copy patch section from lib toml to host toml: {:?}",
+                e
+            );
             return Err(e);
         }
     }
@@ -728,10 +747,10 @@ pub fn remove_lines(file_path: &PathBuf, target: &str) -> io::Result<()> {
 
 pub fn validate_directory_structure(root: &str) -> bool {
     let root = Path::new(root);
-    
+
     // Log the actual path being checked
     println!("Checking directory structure at path: {:?}", root);
-    
+
     // Check if Cargo.toml exists in the root directory
     let cargo_toml = root.join("Cargo.toml");
     println!("Looking for Cargo.toml at: {:?}", cargo_toml);

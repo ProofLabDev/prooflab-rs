@@ -2,7 +2,6 @@
 // The ELF is used for proving and the ID is used for verification.
 use methods::{METHOD_ELF, METHOD_ID};
 use risc0_zkvm::{get_prover_server, ExecutorEnv, ExecutorImpl, ProverOpts, VerifierContext};
-use std::time::Instant;
 mod metrics;
 use metrics::{MetricsCollector, Risc0Metrics};
 
@@ -11,8 +10,6 @@ fn main() {
     let current_dir = std::path::PathBuf::from(args[1].clone());
 
     let mut metrics = Risc0Metrics::default();
-    let mut core_timer = MetricsCollector::new();
-    let mut compress_timer = MetricsCollector::new();
 
     // INPUT //
     let env = ExecutorEnv::builder().build().unwrap();
@@ -28,10 +25,11 @@ fn main() {
     let prover = get_prover_server(&opts).unwrap();
 
     // Generate core proof
-    core_timer.start_timing();
+    let mut core_prove_timer = MetricsCollector::new();
+    core_prove_timer.start_timing();
     let ctx = VerifierContext::default();
     let info = prover.prove_session(&ctx, &session).unwrap();
-    metrics.core_prove_duration = core_timer.elapsed().unwrap();
+    metrics.core_prove_duration = core_prove_timer.elapsed().unwrap();
 
     let receipt = info.receipt;
     let composite_receipt = receipt.inner.composite().unwrap();
@@ -42,19 +40,22 @@ fn main() {
         .sum();
 
     // Verify core proof
-    core_timer.start_timing();
+    let mut core_verify_timer = MetricsCollector::new();
+    core_verify_timer.start_timing();
     receipt.verify(METHOD_ID).unwrap();
-    metrics.core_verify_duration = core_timer.elapsed().unwrap();
+    metrics.core_verify_duration = core_verify_timer.elapsed().unwrap();
 
     // Generate compressed/recursive proof
-    compress_timer.start_timing();
+    let mut compress_prove_timer = MetricsCollector::new();
+    compress_prove_timer.start_timing();
     let compressed_proof = prover.compress(&ProverOpts::succinct(), &receipt).unwrap();
-    metrics.compress_prove_duration = compress_timer.elapsed().unwrap();
+    metrics.compress_prove_duration = compress_prove_timer.elapsed().unwrap();
 
     // Verify compressed proof
-    compress_timer.start_timing();
+    let mut compress_verify_timer = MetricsCollector::new();
+    compress_verify_timer.start_timing();
     compressed_proof.verify(METHOD_ID).unwrap();
-    metrics.compress_verify_duration = compress_timer.elapsed().unwrap();
+    metrics.compress_verify_duration = compress_verify_timer.elapsed().unwrap();
 
     // Get compressed proof size
     let succinct_receipt = compressed_proof.inner.succinct().unwrap();

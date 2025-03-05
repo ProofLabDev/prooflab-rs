@@ -6,6 +6,7 @@ use std::{
     process::{Command, ExitStatus},
     time::Duration,
 };
+use tracing::info;
 
 use crate::utils;
 
@@ -19,6 +20,8 @@ pub struct SP1Metrics {
     pub core_verify_duration: Duration,
     pub compress_prove_duration: Duration,
     pub compress_verify_duration: Duration,
+    pub input_size: usize,
+    pub output_size: usize,
 }
 
 /// SP1 workspace directories
@@ -70,14 +73,46 @@ pub fn prepare_host(
     // Insert output body
     let host_program = host_program.replace(utils::HOST_OUTPUT, output);
 
-    // replace prooflab_io::write
-    let host_program = host_program.replace(utils::IO_WRITE, SP1_HOST_WRITE);
+    // Extract Variable names from host and add them to the stdin
+    let values = utils::extract_regex(
+        host_main,
+        &format!("{}[(](.*?)[)]", regex::escape(utils::IO_WRITE)),
+    )?;
+
+    // Initialize input size tracking
+    let mut new_host_program = host_program.replace(
+        "let mut metrics = SP1Metrics::default();",
+        "let mut metrics = SP1Metrics::default();\nlet mut total_input_size = 0;",
+    );
+
+    // Replace prooflab_io::write with SP1_HOST_WRITE and track input size
+    for value in values {
+        let old_write = format!("{}({})", utils::IO_WRITE, value);
+        let new_write = format!(
+            "{{\n    let serialized = bincode::serialize(&{}).unwrap();\n    total_input_size += serialized.len();\n    {}(&{});\n}}",
+            value, SP1_HOST_WRITE, value
+        );
+        new_host_program = new_host_program.replace(&old_write, &new_write);
+    }
+
+    // Add code to record the input size before running the prover
+    new_host_program = new_host_program.replace(
+        "// Setup the prover",
+        "metrics.input_size = total_input_size;\n\n// Setup the prover",
+    );
+
+    // Add code to record the output size after getting the proof
+    new_host_program = new_host_program.replace(
+        "// Save proof artifacts",
+        "metrics.output_size = compressed.public_values.to_vec().len();\n\n// Save proof artifacts",
+    );
+
     // replace prooflab_io::out()
-    let host_program = host_program.replace(utils::IO_OUT, SP1_HOST_READ);
+    new_host_program = new_host_program.replace(utils::IO_OUT, SP1_HOST_READ);
 
     // Write to host
     let mut file = fs::File::create(host_main)?;
-    file.write_all(host_program.as_bytes())?;
+    file.write_all(new_host_program.as_bytes())?;
     Ok(())
 }
 
@@ -112,5 +147,11 @@ pub fn generate_sp1_proof(
 
 pub fn read_metrics() -> io::Result<SP1Metrics> {
     let metrics_str = fs::read_to_string(SP1_METRICS_PATH)?;
-    serde_json::from_str(&metrics_str).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    let metrics = serde_json::from_str(&metrics_str)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    // Log the raw metrics for debugging
+    info!("Read SP1 metrics: {:?}", metrics_str);
+
+    Ok(metrics)
 }

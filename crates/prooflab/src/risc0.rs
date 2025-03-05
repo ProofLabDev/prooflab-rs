@@ -19,6 +19,8 @@ pub struct Risc0Metrics {
     pub core_verify_duration: Duration,
     pub compress_prove_duration: Duration,
     pub compress_verify_duration: Duration,
+    pub input_size: usize,
+    pub output_size: usize,
 }
 
 /// RISC0 workspace directories
@@ -79,24 +81,47 @@ pub fn prepare_host(
         &format!("{}[(](.*?)[)]", regex::escape(utils::IO_WRITE)),
     )?;
 
+    // Initialize input size tracking
+    let mut new_host_program = host_program.replace(
+        "let mut metrics = Risc0Metrics::default();",
+        "let mut metrics = Risc0Metrics::default();\nlet mut total_input_size = 0;",
+    );
+
     // Construct new Environment Builder
     let mut new_builder = RISC0_ENV_BUILDER.to_string();
     for value in values {
-        new_builder.push_str(&format!(".write({}).unwrap()", value));
+        // Add code to measure input size before writing to env
+        // Let bincode handle the serialization directly to avoid reference issues
+        new_builder.push_str(&format!(
+            ".write({{\n    let serialized = bincode::serialize({}).unwrap();\n    total_input_size += serialized.len();\n    {}\n}}).unwrap()",
+            value, value
+        ));
     }
     new_builder.push_str(".build().unwrap();");
 
     // Replace environment builder in host with new one
-    let host_program = host_program.replace(
+    new_host_program = new_host_program.replace(
         "let env = ExecutorEnv::builder().build().unwrap();",
         &new_builder,
     );
 
-    // replace prooflab_io::out()
-    let host_program = host_program.replace(utils::IO_OUT, RISC0_IO_OUT);
+    // Add code to record the input size in metrics
+    new_host_program = new_host_program.replace(
+        "// Setup the prover",
+        "// Record total input size\nmetrics.input_size = total_input_size;\n\n// Setup the prover",
+    );
+
+    // Add code to record the output size
+    new_host_program = new_host_program.replace(
+        "// OUTPUT //",
+        "// Record output size\nmetrics.output_size = receipt.journal.bytes.len();\n\n// OUTPUT //",
+    );
+
+    // Replace prooflab_io::out() with RISC0_IO_OUT and add output size tracking
+    new_host_program = new_host_program.replace(utils::IO_OUT, RISC0_IO_OUT);
 
     let mut file = fs::File::create(host_main)?;
-    file.write_all(host_program.as_bytes())?;
+    file.write_all(new_host_program.as_bytes())?;
 
     utils::remove_lines(host_main, "prooflab_io::write(")?;
     Ok(())

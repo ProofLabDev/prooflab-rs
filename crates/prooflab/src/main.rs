@@ -139,7 +139,7 @@ async fn main() -> io::Result<()> {
                     error!("Failed to read SP1 program size");
                 }
 
-                let proof_gen_start = Instant::now();
+                let _proof_gen_start = Instant::now();
 
                 // Start resource sampling in a separate thread
                 let tx = telemetry.start_resource_monitoring();
@@ -148,8 +148,6 @@ async fn main() -> io::Result<()> {
 
                 // Stop resource sampling
                 let _ = tx.send(());
-
-                telemetry.record_proof_generation(proof_gen_start.elapsed());
 
                 if result.success() {
                     info!("SP1 proof and ELF generated");
@@ -161,6 +159,8 @@ async fn main() -> io::Result<()> {
                             Some(sp1_metrics.num_segments),
                             Some(sp1_metrics.core_proof_size),
                             Some(sp1_metrics.recursive_proof_size),
+                            Some(sp1_metrics.input_size),
+                            Some(sp1_metrics.output_size),
                         );
                         telemetry.record_proof_timings(
                             sp1_metrics.core_prove_duration,
@@ -168,6 +168,7 @@ async fn main() -> io::Result<()> {
                             Some(sp1_metrics.compress_prove_duration),
                             Some(sp1_metrics.compress_verify_duration),
                         );
+                        telemetry.calculate_throughput();
                     }
 
                     utils::replace(
@@ -410,7 +411,7 @@ async fn main() -> io::Result<()> {
                     error!("Failed to read RISC0 program size");
                 }
 
-                let proof_gen_start = Instant::now();
+                let _proof_gen_start = Instant::now();
 
                 // Start resource sampling in a separate thread
                 let tx = telemetry.start_resource_monitoring();
@@ -419,8 +420,6 @@ async fn main() -> io::Result<()> {
 
                 // Stop resource sampling
                 let _ = tx.send(());
-
-                telemetry.record_proof_generation(proof_gen_start.elapsed());
 
                 if result.success() {
                     info!("Risc0 proof and Image ID generated");
@@ -432,6 +431,8 @@ async fn main() -> io::Result<()> {
                             Some(risc0_metrics.num_segments),
                             Some(risc0_metrics.core_proof_size),
                             Some(risc0_metrics.recursive_proof_size),
+                            Some(risc0_metrics.input_size),
+                            Some(risc0_metrics.output_size),
                         );
                         telemetry.record_proof_timings(
                             risc0_metrics.core_prove_duration,
@@ -439,6 +440,7 @@ async fn main() -> io::Result<()> {
                             Some(risc0_metrics.compress_prove_duration),
                             Some(risc0_metrics.compress_verify_duration),
                         );
+                        telemetry.calculate_throughput();
                     }
 
                     utils::replace(

@@ -25,6 +25,7 @@ fn main() {
 
     // INPUT //
 
+    // Setup the prover
     let client = ProverClient::from_env();
     let (pk, vk) = client.setup(METHOD_ELF);
 

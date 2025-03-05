@@ -12,6 +12,8 @@ pub struct SP1Metrics {
     pub core_verify_duration: Duration,
     pub compress_prove_duration: Duration,
     pub compress_verify_duration: Duration,
+    pub input_size: usize,
+    pub output_size: usize,
 }
 
 pub struct MetricsCollector {
@@ -34,13 +36,10 @@ impl MetricsCollector {
 
 pub fn write_metrics(metrics: &SP1Metrics, output_path: &std::path::Path) -> std::io::Result<()> {
     info!("About to write metrics");
-
     let metrics_path = output_path.join("sp1_metrics.json");
     info!("Full metrics path: {}", metrics_path.display());
-
     let json = serde_json::to_string_pretty(metrics)?;
     info!("Generated JSON: {}", json);
-
     match std::fs::write(&metrics_path, &json) {
         Ok(_) => {
             info!("Successfully wrote metrics to {}", metrics_path.display());

@@ -113,8 +113,8 @@ pub fn prepare_host(
 
     // Add code to record the output size
     new_host_program = new_host_program.replace(
-        "// OUTPUT //",
-        "// Record output size\nmetrics.output_size = receipt.journal.bytes.len();\n\n// OUTPUT //",
+        "// Save proof artifacts",
+        "// Record output size\nmetrics.output_size = receipt.journal.bytes.len();\n\n// Save proof artifacts",
     );
 
     // Replace prooflab_io::out() with RISC0_IO_OUT and add output size tracking

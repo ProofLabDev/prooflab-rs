@@ -75,28 +75,43 @@ pub fn prepare_host(
     // Insert output body
     let host_program = host_program.replace(utils::HOST_OUTPUT, output);
 
-    // Extract Variable names from host and add them to the ExecutorEnv::builder()
-    let values = utils::extract_regex(
-        host_main,
-        &format!("{}[(](.*?)[)]", regex::escape(utils::IO_WRITE)),
-    )?;
-
     // Initialize input size tracking
     let mut new_host_program = host_program.replace(
         "let mut metrics = Risc0Metrics::default();",
         "let mut metrics = Risc0Metrics::default();\nlet mut total_input_size = 0;",
     );
 
+    // Read the entire file content to find all prooflab_io::write calls
+    let file_content = fs::read_to_string(host_main)?;
+
+    // Process each prooflab_io::write call
+    let write_regex =
+        regex::Regex::new(&format!("{}\\((.*?)\\);", regex::escape(utils::IO_WRITE))).unwrap();
+
     // Construct new Environment Builder
     let mut new_builder = RISC0_ENV_BUILDER.to_string();
-    for value in values {
-        // Add code to measure input size before writing to env
-        // Let bincode handle the serialization directly to avoid reference issues
-        new_builder.push_str(&format!(
-            ".write({{\n    let serialized = bincode::serialize({}).unwrap();\n    total_input_size += serialized.len();\n    {}\n}}).unwrap()",
-            value, value
-        ));
+
+    for capture in write_regex.captures_iter(&file_content) {
+        if let Some(value_match) = capture.get(1) {
+            let value = value_match.as_str();
+
+            // Add code to measure input size before writing to env
+            if value.starts_with('&') {
+                // Handle reference values like &something or &something.method()
+                new_builder.push_str(&format!(
+                    ".write({{\n    let serialized = bincode::serialize({}).unwrap();\n    total_input_size += serialized.len();\n    {}\n}}).unwrap()",
+                    value, value
+                ));
+            } else {
+                // Handle non-reference values
+                new_builder.push_str(&format!(
+                    ".write({{\n    let serialized = bincode::serialize(&{}).unwrap();\n    total_input_size += serialized.len();\n    &{}\n}}).unwrap()",
+                    value, value
+                ));
+            }
+        }
     }
+
     new_builder.push_str(".build().unwrap();");
 
     // Replace environment builder in host with new one

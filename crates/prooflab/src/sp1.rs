@@ -1,3 +1,4 @@
+use regex;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -73,26 +74,40 @@ pub fn prepare_host(
     // Insert output body
     let host_program = host_program.replace(utils::HOST_OUTPUT, output);
 
-    // Extract Variable names from host and add them to the stdin
-    let values = utils::extract_regex(
-        host_main,
-        &format!("{}[(](.*?)[)]", regex::escape(utils::IO_WRITE)),
-    )?;
-
     // Initialize input size tracking
     let mut new_host_program = host_program.replace(
         "let mut metrics = SP1Metrics::default();",
         "let mut metrics = SP1Metrics::default();\nlet mut total_input_size = 0;",
     );
 
-    // Replace prooflab_io::write with SP1_HOST_WRITE and track input size
-    for value in values {
-        let old_write = format!("{}({})", utils::IO_WRITE, value);
-        let new_write = format!(
-            "{{\n    let serialized = bincode::serialize(&{}).unwrap();\n    total_input_size += serialized.len();\n    {}(&{});\n}}",
-            value, SP1_HOST_WRITE, value
-        );
-        new_host_program = new_host_program.replace(&old_write, &new_write);
+    // Read the entire file content to find all prooflab_io::write calls
+    let file_content = fs::read_to_string(host_main)?;
+
+    // Process each prooflab_io::write call
+    let write_regex =
+        regex::Regex::new(&format!("{}\\((.*?)\\);", regex::escape(utils::IO_WRITE))).unwrap();
+    for capture in write_regex.captures_iter(&file_content) {
+        if let Some(value_match) = capture.get(1) {
+            let value = value_match.as_str();
+            let old_write = format!("{}({});", utils::IO_WRITE, value);
+
+            // Convert each write call to SP1 format appropriately
+            let new_write = if value.starts_with('&') {
+                // Handle reference values like &something or &something.method()
+                format!(
+                    "{{\n    let serialized = bincode::serialize({}).unwrap();\n    total_input_size += serialized.len();\n    {}({});\n}}",
+                    value, SP1_HOST_WRITE, value
+                )
+            } else {
+                // Handle non-reference values
+                format!(
+                    "{{\n    let serialized = bincode::serialize(&{}).unwrap();\n    total_input_size += serialized.len();\n    {}(&{});\n}}",
+                    value, SP1_HOST_WRITE, value
+                )
+            };
+
+            new_host_program = new_host_program.replace(&old_write, &new_write);
+        }
     }
 
     // Add code to record the input size before running the prover

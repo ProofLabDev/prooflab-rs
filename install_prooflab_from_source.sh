@@ -62,7 +62,7 @@ if ! command -v rzup &> /dev/null; then
     echo "Installing RISC0 toolchain..."
     curl -L https://risczero.com/install | bash
     export PATH="$PATH:$HOME/.risc0/bin"
-    rzup install
+    rzup install cargo-risc0 v1.2.0
 else
     echo "RISC0 toolchain already installed"
 fi

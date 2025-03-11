@@ -18,7 +18,10 @@ fn main() {
 }
 
 fn input() {
-    let n = 1000u32;
+    let n = std::env::var("BENCHMARK_SIZE")
+        .ok()
+        .and_then(|val| val.parse::<u32>().ok())
+        .unwrap_or(1000u32);
     prooflab_io::write(&n);
 }
 

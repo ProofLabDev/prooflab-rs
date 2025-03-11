@@ -16,23 +16,25 @@ fn main() {
     let namespace_ref = namespace.as_ref().map(|ns| ns.as_slice());
 
     // Convert raw bytes to the expected types
-    let public_key = match commonware_cryptography::secp256r1::PublicKey::try_from(&public_key_bytes[..]) {
-        Ok(pk) => pk,
-        Err(_) => {
-            prooflab_io::commit(&message);
-            prooflab_io::commit(&false); // Verification failed - invalid public key
-            return;
-        }
-    };
+    let public_key =
+        match commonware_cryptography::secp256r1::PublicKey::try_from(&public_key_bytes[..]) {
+            Ok(pk) => pk,
+            Err(_) => {
+                prooflab_io::commit(&message);
+                prooflab_io::commit(&false); // Verification failed - invalid public key
+                return;
+            }
+        };
 
-    let signature = match commonware_cryptography::secp256r1::Signature::try_from(&signature_bytes[..]) {
-        Ok(sig) => sig,
-        Err(_) => {
-            prooflab_io::commit(&message);
-            prooflab_io::commit(&false); // Verification failed - invalid signature
-            return;
-        }
-    };
+    let signature =
+        match commonware_cryptography::secp256r1::Signature::try_from(&signature_bytes[..]) {
+            Ok(sig) => sig,
+            Err(_) => {
+                prooflab_io::commit(&message);
+                prooflab_io::commit(&false); // Verification failed - invalid signature
+                return;
+            }
+        };
 
     // Start verification
     let result = Secp256r1::verify(namespace_ref, &message, &public_key, &signature);
@@ -47,8 +49,18 @@ fn input() {
     let seed = 12345;
     let mut rng = StdRng::seed_from_u64(seed);
 
-    // Create test message
-    let message = b"This is a test message for Secp256r1 signature verification".to_vec();
+    // Get benchmark size or default to 1
+    let repeat_count = std::env::var("BENCHMARK_SIZE")
+        .ok()
+        .and_then(|val| val.parse::<usize>().ok())
+        .unwrap_or(1);
+
+    // Create test message with configurable size
+    let base_message = b"This is a test message for Secp256r1 signature verification";
+    let message: Vec<u8> = std::iter::repeat(base_message)
+        .take(repeat_count)
+        .flat_map(|chunk| chunk.iter().copied())
+        .collect();
 
     // Optional namespace
     let namespace = Some(b"benchmark".to_vec());

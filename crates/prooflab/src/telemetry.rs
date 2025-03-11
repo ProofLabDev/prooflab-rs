@@ -100,6 +100,7 @@ pub struct TelemetryData {
     pub program: ProgramInfo,
     pub zk_metrics: ZkMetrics,
     pub system_info: SystemInfo,
+    pub benchmark_size: Option<usize>,
 }
 
 pub struct TelemetryCollector {
@@ -118,6 +119,13 @@ impl TelemetryCollector {
         enabled: bool,
         guest_path: &str,
     ) -> Self {
+        // Check if BENCHMARK_SIZE env var is set and parse it
+        let benchmark_size = std::env::var("BENCHMARK_SIZE")
+            .ok()
+            .and_then(|size| size.parse::<usize>().ok());
+        if let Some(size) = benchmark_size {
+            info!("Detected benchmark size from env var: {}", size);
+        }
         let mut system = System::new();
         system.refresh_all();
         system.refresh_cpu_frequency();
@@ -209,6 +217,7 @@ impl TelemetryCollector {
                 host_metadata,
             },
             system_info,
+            benchmark_size,
             ..Default::default()
         };
 
@@ -657,6 +666,9 @@ impl TelemetryCollector {
         );
         if let Some(abs_path) = &final_metrics.program.absolute_path {
             info!("Absolute Path: {}", abs_path);
+        }
+        if let Some(size) = final_metrics.benchmark_size {
+            info!("Benchmark Size: {}", size);
         }
 
         // Log system information

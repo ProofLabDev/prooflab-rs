@@ -7,7 +7,17 @@ fn main() {
 }
 
 fn input() {
-    let message = b"Hello, world!".to_vec();
+    let repeat_count = std::env::var("BENCHMARK_SIZE")
+        .ok()
+        .and_then(|val| val.parse::<usize>().ok())
+        .unwrap_or(1);
+
+    let base_message = b"Hello, world!";
+    let message: Vec<u8> = std::iter::repeat(base_message)
+        .take(repeat_count)
+        .flat_map(|chunk| chunk.iter().copied())
+        .collect();
+
     prooflab_io::write(&message);
 }
 

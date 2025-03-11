@@ -1,6 +1,6 @@
 //For acceleration we require the user defines the respective crate import since they are specific and needed to compile
-use sha2::{Digest, Sha256};
 use prooflab_io;
+use sha2::{Digest, Sha256};
 
 fn main() {
     let data: String = prooflab_io::read();
@@ -11,7 +11,16 @@ fn main() {
 }
 
 fn input() {
-    let data: String = "RISCV IS COOL!!!".to_string();
+    let repeat_count = std::env::var("BENCHMARK_SIZE")
+        .ok()
+        .and_then(|val| val.parse::<usize>().ok())
+        .unwrap_or(1);
+
+    let base_string = "RISCV IS COOL!!!";
+    let data = std::iter::repeat(base_string)
+        .take(repeat_count)
+        .collect::<String>();
+
     prooflab_io::write(&data);
 }
 

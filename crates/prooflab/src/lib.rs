@@ -66,6 +66,49 @@ pub struct ProofArgs {
         env = "PROOFLAB_GPU"
     )]
     pub gpu: bool,
+    #[clap(
+        name = "Sets the benchmark size for scalable examples",
+        long = "benchmark-size",
+        value_name = "SIZE",
+        conflicts_with_all = &["benchmark-start", "benchmark-end", "benchmark-step", "benchmark-sizes"]
+    )]
+    pub benchmark_size: Option<usize>,
+    
+    #[clap(
+        name = "Comma-separated list of benchmark sizes to run (e.g. 10,20,50,100)",
+        long = "benchmark-sizes",
+        value_name = "SIZES",
+        conflicts_with_all = &["benchmark-start", "benchmark-end", "benchmark-step", "benchmark-size"]
+    )]
+    pub benchmark_sizes: Option<String>,
+    
+    #[clap(
+        name = "Start of benchmark size range for sweeping",
+        long = "benchmark-start",
+        value_name = "START",
+        requires_all = &["benchmark-end"],
+        conflicts_with = "benchmark-sizes"
+    )]
+    pub benchmark_start: Option<usize>,
+    
+    #[clap(
+        name = "End of benchmark size range for sweeping (inclusive)",
+        long = "benchmark-end",
+        value_name = "END",
+        requires_all = &["benchmark-start"],
+        conflicts_with = "benchmark-sizes"
+    )]
+    pub benchmark_end: Option<usize>,
+    
+    #[clap(
+        name = "Step size for benchmark sweep",
+        long = "benchmark-step",
+        value_name = "STEP",
+        default_value = "1",
+        requires_all = &["benchmark-start", "benchmark-end"],
+        conflicts_with = "benchmark-sizes"
+    )]
+    pub benchmark_step: usize,
     #[arg(
         name = "Aligned verification data directory Path",
         long = "aligned-verification-data-path",

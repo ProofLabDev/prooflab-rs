@@ -1,0 +1,71 @@
+use std::time::Instant;
+use std::fs;
+use std::path::Path;
+use serde_json;
+use guest::*;
+mod metrics;
+use metrics::{MetricsCollector, JoltMetrics};
+
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let current_dir = std::path::PathBuf::from(args[1].clone());
+    
+    // Create metrics collection
+    let mut metrics = JoltMetrics::default();
+    let mut core_timer = MetricsCollector::new();
+    let mut compress_timer = MetricsCollector::new();
+    
+    // Get the build function from guest
+    let (prove_main, verify_main) = build_main();
+    
+    // Get program analysis if available
+    if let Ok(program_summary) = analyze_main() {
+        // Estimate cycles
+        metrics.cycles = program_summary.cycle_estimate.unwrap_or(0);
+        metrics.num_segments = 1; // Jolt doesn't have segments concept
+    }
+    
+    // INPUT //
+    
+    // Generate proof
+    core_timer.start_timing();
+    let (output, proof) = prove_main();
+    metrics.core_prove_duration = core_timer.elapsed().unwrap();
+    
+    // Get proof size
+    let serialized_proof = bincode::serialize(&proof).unwrap();
+    metrics.core_proof_size = serialized_proof.len();
+    
+    // Verify proof
+    core_timer.start_timing();
+    let is_valid = verify_main(proof.clone());
+    metrics.core_verify_duration = core_timer.elapsed().unwrap();
+    
+    if !is_valid {
+        panic!("Proof verification failed");
+    }
+    
+    // OUTPUT //
+    
+    // Save proof artifacts
+    fs::create_dir_all(current_dir.join("proof_data/jolt"))
+        .expect("Failed to create proof_data/jolt");
+    
+    fs::write(
+        current_dir.join("proof_data/jolt/jolt.proof"),
+        &serialized_proof,
+    )
+    .expect("Failed to save Jolt Proof file");
+    
+    // Save output
+    let serialized_output = bincode::serialize(&output).unwrap();
+    fs::write(
+        current_dir.join("proof_data/jolt/jolt.pub"),
+        &serialized_output,
+    )
+    .expect("Failed to save Jolt public output");
+    
+    // Save metrics
+    metrics::write_metrics(&metrics, current_dir.join("proof_data/jolt").as_path())
+        .expect("Failed to save metrics");
+}

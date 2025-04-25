@@ -21,8 +21,16 @@ use ethers::signers::LocalWallet;
 
 pub mod risc0;
 pub mod sp1;
+pub mod jolt;
 pub mod telemetry;
 pub mod utils;
+
+// Add Jolt to ProvingSystemId enum
+// Note: This is a temporary solution. In a proper implementation,
+// this would be added to the aligned_sdk crate.
+impl ProvingSystemId {
+    pub const JOLT: Self = Self(2); // Assuming RISC0=0, SP1=1
+}
 
 // Make proof_data path optional
 // Make keystore unneeded

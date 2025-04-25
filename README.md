@@ -1,6 +1,6 @@
 # prooflab-rs
 
-prooflab-rs is a CLI tool that simplifies developing zero-knowledge applications in Rust using zkVMs like SP1 or Risc0.
+prooflab-rs is a CLI tool that simplifies developing zero-knowledge applications in Rust using zkVMs like SP1, Risc0, or Jolt.
 
 ## Project Structure
 
@@ -199,6 +199,11 @@ To generate a proof of your code's execution, run one of the following commands:
   cargo run --release -- prove-risc0 <PROGRAM_DIRECTORY_PATH>
   ```
 
+- **Using Jolt**:
+  ```sh
+  cargo run --release -- prove-jolt <PROGRAM_DIRECTORY_PATH>
+  ```
+
   > **Note:** Aligned currently supports verification of [Risc0](https://dev.risczero.com/api/zkvm/quickstart#1-install-the-risc-zero-toolchain) proofs from release version `v1.0.1`. 
 
 ### Submitting Proofs to Aligned
@@ -257,16 +262,18 @@ For help with prooflab-rs or questions about implementation, please join our [Te
 
 After installing prooflab-rs, run any of the following example commands. You can choose either Risc0 or SP1 as your zkVM backend:
 
-| Example | Risc0 | SP1 |
-|---------|-------|-----|
-| **Fibonacci** | `make prove_risc0_fibonacci` | `make prove_sp1_fibonacci` |
-| **RSA** | `make prove_risc0_rsa` | `make prove_sp1_rsa` |
-| **ECDSA** | `make prove_risc0_ecdsa` | `make prove_sp1_ecdsa` |
-| **Blockchain State Diff** | `make prove_risc0_json` | `make prove_sp1_json` |
-| **Regex** | `make prove_risc0_regex` | `make prove_sp1_regex` |
-| **SHA256** | `make prove_risc0_sha` | `make prove_sp1_sha` |
-| **Tendermint** | `make prove_risc0_tendermint` | `make prove_sp1_tendermint` |
-| **ZK Quiz** | `make prove_risc0_zkquiz` | `make prove_sp1_zkquiz` |
+| Example | Risc0 | SP1 | Jolt |
+|---------|-------|-----|------|
+| **Fibonacci** | `make prove_risc0_fibonacci` | `make prove_sp1_fibonacci` | `make prove_jolt_fibonacci` |
+| **RSA** | `make prove_risc0_rsa` | `make prove_sp1_rsa` | - |
+| **ECDSA** | `make prove_risc0_ecdsa` | `make prove_sp1_ecdsa` | - |
+| **Blockchain State Diff** | `make prove_risc0_json` | `make prove_sp1_json` | - |
+| **Regex** | `make prove_risc0_regex` | `make prove_sp1_regex` | - |
+| **SHA256** | `make prove_risc0_sha` | `make prove_sp1_sha` | - |
+| **Tendermint** | `make prove_risc0_tendermint` | `make prove_sp1_tendermint` | - |
+| **ZK Quiz** | `make prove_risc0_zkquiz` | `make prove_sp1_zkquiz` | - |
+| **Is Even** | - | `make prove_sp1_iseven` | `make prove_jolt_is_even` |
+| **Bubble Sort** | `make prove_risc0_bubble_sort` | `make prove_sp1_bubble_sort` | `make prove_jolt_bubble_sort` |
 
 ## Acknowledgments
 
@@ -278,6 +285,7 @@ We extend our deepest gratitude to:
 
 - The [RISC0](https://github.com/risc0/risc0) team for their pioneering work on RISC-V based zero-knowledge virtual machines
 - The [SP1](https://github.com/succinctlabs/sp1) team for their innovative approach to high-performance zero-knowledge computation
+- The [Jolt](https://github.com/a16z/jolt) team for their novel Rust-native zero-knowledge VM
 - The entire zero-knowledge community for pushing the boundaries of what's possible with this transformative technology
 
 ProofLab is committed to advancing the state of zero-knowledge application development by providing open tools, standardized metrics, and a collaborative platform for the broader ecosystem.

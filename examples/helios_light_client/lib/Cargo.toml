@@ -7,9 +7,8 @@ edition = "2021"
 helios-consensus-core = { git = "https://github.com/a16z/helios", version = "0.7.0", rev="f2a90baa192feb14de1a470882eb5a79bf805043" }
 serde_cbor = "0.11.2"
 ssz-rs = { package = "ssz_rs", version = "0.9.0" }
-alloy-primitives = { version = "0.8.22", features = ["serde"] }
+alloy-primitives = { version = "^1.0", features = ["serde"] }
 tree_hash = "0.9.1"
-serde = "1.0.203"
 
 [patch.crates-io]
 ethereum_hashing = { git = "https://github.com/ncitron/ethereum_hashing", rev = "7ee70944ed4fabe301551da8c447e4f4ae5e6c35" }

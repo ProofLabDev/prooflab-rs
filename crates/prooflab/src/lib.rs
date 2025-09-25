@@ -19,6 +19,7 @@ use ethers::prelude::*;
 use ethers::providers::Http;
 use ethers::signers::LocalWallet;
 
+pub mod native;
 pub mod risc0;
 pub mod sp1;
 pub mod telemetry;

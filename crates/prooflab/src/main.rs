@@ -4,7 +4,7 @@ use env_logger::Env;
 use log::error;
 use log::info;
 use prooflab::{
-    risc0, sp1, submit_proof_to_aligned, telemetry::TelemetryCollector, utils, ProofArgs,
+    native, risc0, sp1, submit_proof_to_aligned, telemetry::TelemetryCollector, utils, ProofArgs,
 };
 use std::fs;
 use std::fs::OpenOptions;
@@ -27,6 +27,8 @@ enum Commands {
     ProveSp1(ProofArgs),
     #[clap(about = "Generate a proof of execution of a program using RISC0")]
     ProveRisc0(ProofArgs),
+    #[clap(about = "Run native benchmark without any ZK or zkVM overhead")]
+    ProveNative(ProofArgs),
 }
 
 #[tokio::main]
@@ -46,25 +48,25 @@ async fn main() -> io::Result<()> {
             } else if let Some(sizes_csv) = &args.benchmark_sizes {
                 // CSV list mode
                 info!("Running benchmarks with sizes: {}", sizes_csv);
-                
+
                 let sizes: Vec<usize> = sizes_csv
                     .split(',')
                     .filter_map(|s| s.trim().parse::<usize>().ok())
                     .collect();
-                
+
                 if sizes.is_empty() {
                     error!("No valid benchmark sizes found in list: {}", sizes_csv);
                     return Ok(());
                 }
-                
+
                 for size in sizes {
                     info!("====== Benchmark run with size: {} ======", size);
                     std::env::set_var("BENCHMARK_SIZE", size.to_string());
-                    
+
                     // Run with current size
                     run_sp1_proof(args).await?;
                 }
-                
+
                 info!("Benchmark sizes list completed");
                 return Ok(());
             } else if let (Some(start), Some(end)) = (args.benchmark_start, args.benchmark_end) {
@@ -101,25 +103,25 @@ async fn main() -> io::Result<()> {
             } else if let Some(sizes_csv) = &args.benchmark_sizes {
                 // CSV list mode
                 info!("Running benchmarks with sizes: {}", sizes_csv);
-                
+
                 let sizes: Vec<usize> = sizes_csv
                     .split(',')
                     .filter_map(|s| s.trim().parse::<usize>().ok())
                     .collect();
-                
+
                 if sizes.is_empty() {
                     error!("No valid benchmark sizes found in list: {}", sizes_csv);
                     return Ok(());
                 }
-                
+
                 for size in sizes {
                     info!("====== Benchmark run with size: {} ======", size);
                     std::env::set_var("BENCHMARK_SIZE", size.to_string());
-                    
+
                     // Run with current size
                     run_risc0_proof(args).await?;
                 }
-                
+
                 info!("Benchmark sizes list completed");
                 return Ok(());
             } else if let (Some(start), Some(end)) = (args.benchmark_start, args.benchmark_end) {
@@ -143,6 +145,61 @@ async fn main() -> io::Result<()> {
 
             // Run the proof for the default or specified size
             run_risc0_proof(args).await?;
+            return Ok(());
+        }
+        Commands::ProveNative(args) => {
+            info!("Running native benchmark, program in: {}", args.guest_path);
+
+            // Handle benchmark sizing
+            if let Some(size) = args.benchmark_size {
+                // Single benchmark size mode
+                std::env::set_var("BENCHMARK_SIZE", size.to_string());
+                info!("Setting benchmark size to: {}", size);
+            } else if let Some(sizes_csv) = &args.benchmark_sizes {
+                // CSV list mode
+                info!("Running native benchmarks with sizes: {}", sizes_csv);
+
+                let sizes: Vec<usize> = sizes_csv
+                    .split(',')
+                    .filter_map(|s| s.trim().parse::<usize>().ok())
+                    .collect();
+
+                if sizes.is_empty() {
+                    error!("No valid benchmark sizes found in list: {}", sizes_csv);
+                    return Ok(());
+                }
+
+                for size in sizes {
+                    info!("====== Native benchmark run with size: {} ======", size);
+                    std::env::set_var("BENCHMARK_SIZE", size.to_string());
+
+                    // Run with current size
+                    run_native_benchmark(args).await?;
+                }
+
+                info!("Native benchmark sizes list completed");
+                return Ok(());
+            } else if let (Some(start), Some(end)) = (args.benchmark_start, args.benchmark_end) {
+                // Sweep mode
+                info!(
+                    "Running native benchmark sweep from {} to {} with step {}",
+                    start, end, args.benchmark_step
+                );
+
+                for size in (start..=end).step_by(args.benchmark_step) {
+                    info!("====== Native benchmark run with size: {} ======", size);
+                    std::env::set_var("BENCHMARK_SIZE", size.to_string());
+
+                    // Run with current size
+                    run_native_benchmark(args).await?;
+                }
+
+                info!("Native benchmark sweep completed");
+                return Ok(());
+            }
+
+            // Run the benchmark for the default or specified size
+            run_native_benchmark(args).await?;
             return Ok(());
         }
     }
@@ -327,7 +384,7 @@ async fn run_sp1_proof(args: &ProofArgs) -> io::Result<()> {
                     } else {
                         String::new()
                     };
-                    
+
                     let telemetry_file = format!(
                         "{}/sp1_telemetry_{}_{}_{}{}{}.json",
                         args.telemetry_output_path,
@@ -397,7 +454,7 @@ async fn run_sp1_proof(args: &ProofArgs) -> io::Result<()> {
                 } else {
                     String::new()
                 };
-                
+
                 let telemetry_file = format!(
                     "{}/sp1_telemetry_{}_{}_{}{}{}.json",
                     args.telemetry_output_path,
@@ -615,7 +672,7 @@ async fn run_risc0_proof(args: &ProofArgs) -> io::Result<()> {
                     } else {
                         String::new()
                     };
-                    
+
                     let telemetry_file = format!(
                         "{}/risc0_telemetry_{}_{}_{}{}{}.json",
                         args.telemetry_output_path,
@@ -671,7 +728,7 @@ async fn run_risc0_proof(args: &ProofArgs) -> io::Result<()> {
                 } else {
                     String::new()
                 };
-                
+
                 let telemetry_file = format!(
                     "{}/risc0_telemetry_{}_{}_{}{}{}.json",
                     args.telemetry_output_path,
@@ -702,6 +759,223 @@ async fn run_risc0_proof(args: &ProofArgs) -> io::Result<()> {
         return Ok(());
     } else {
         error!("prooflab-rs directory structure incorrect please consult the README",);
+        return Ok(());
+    }
+}
+
+async fn run_native_benchmark(args: &ProofArgs) -> io::Result<()> {
+    let telemetry = TelemetryCollector::new(
+        "Native",
+        false, // No precompiles in native mode
+        false, // No GPU in native mode
+        args.enable_telemetry,
+        &args.guest_path,
+    );
+    let workspace_start = Instant::now();
+
+    // Perform sanitation checks on directory
+    if utils::validate_directory_structure(&args.guest_path) {
+        let Some(home_dir) = dirs::home_dir() else {
+            error!("Failed to locate home directory");
+            return Ok(());
+        };
+        let Ok(current_dir) = std::env::current_dir() else {
+            error!("Failed to locate current directory");
+            return Ok(());
+        };
+        let home_dir = home_dir.join(".prooflab");
+
+        // Prepare native workspace
+        utils::prepare_workspace(
+            &PathBuf::from(&args.guest_path),
+            &home_dir.join(native::NATIVE_SRC_DIR),
+            &home_dir.join(native::NATIVE_CARGO_TOML),
+            &home_dir.join("workspaces/native"),
+            &home_dir.join("workspaces/native/Cargo.toml"),
+            &home_dir.join(native::NATIVE_BASE_CARGO_TOML),
+            &home_dir.join(native::NATIVE_BASE_CARGO_TOML),
+        )?;
+
+        telemetry.record_workspace_setup(workspace_start.elapsed());
+
+        let compilation_start = Instant::now();
+        let Ok(imports) = utils::get_imports(&home_dir.join(native::NATIVE_MAIN)) else {
+            error!("Failed to extract imports");
+            return Ok(());
+        };
+
+        let main_path = home_dir.join(native::NATIVE_MAIN);
+        let Ok(function_bodies) = utils::extract_function_bodies(
+            &main_path,
+            vec![
+                "fn main()".to_string(),
+                "fn input()".to_string(),
+                "fn output()".to_string(),
+            ],
+        ) else {
+            error!("Failed to extract function bodies");
+            return Ok(());
+        };
+
+        // Prepare native runner
+        native::prepare_native_runner(
+            &imports,
+            &function_bodies[0],
+            &function_bodies[1],
+            &function_bodies[2],
+            &home_dir.join(native::NATIVE_MAIN),
+        )?;
+
+        let workspace_dir = home_dir.join(native::NATIVE_WORKSPACE_DIR);
+
+        // Build the native program
+        let build_result = native::build_native_program(&workspace_dir)?;
+        if !build_result.success() {
+            error!("Native program build failed");
+            return Ok(());
+        }
+        info!("Native program built successfully");
+        telemetry.record_compilation(compilation_start.elapsed());
+
+        // Record compiled program size
+        if let Ok(metadata) =
+            fs::metadata(home_dir.join("workspaces/native/target/release/native_runner"))
+        {
+            telemetry.record_program_size(metadata.len());
+            info!("Recorded native program size: {} bytes", metadata.len());
+        }
+
+        let execution_start = Instant::now();
+
+        // Start resource sampling in a separate thread
+        let tx = telemetry.start_resource_monitoring();
+
+        // Run the native program
+        let result = native::run_native_program(&workspace_dir, &current_dir)?;
+
+        // Stop resource sampling
+        let _ = tx.send(());
+
+        let execution_time = execution_start.elapsed();
+
+        if result.success() {
+            info!("Native benchmark completed successfully");
+
+            // Read and record native metrics
+            if let Ok(native_metrics) = native::read_metrics() {
+                telemetry.record_zk_metrics(
+                    Some(native_metrics.iterations),
+                    None, // No segments in native mode
+                    None, // No proof size in native mode
+                    None, // No proof size in native mode
+                    Some(native_metrics.input_size as usize),
+                    Some(native_metrics.output_size as usize),
+                );
+                telemetry.record_proof_timings(
+                    execution_time,
+                    std::time::Duration::from_secs(0), // No verification in native mode
+                    None,
+                    None,
+                );
+                telemetry.calculate_throughput();
+            }
+
+            // Save telemetry data if enabled
+            if let Some(telemetry_data) = telemetry.finalize() {
+                if args.enable_telemetry {
+                    fs::create_dir_all(&args.telemetry_output_path)?;
+                    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+                    let package_name = telemetry_data
+                        .program
+                        .guest_metadata
+                        .package_name
+                        .as_deref()
+                        .unwrap_or("unknown");
+                    let instance_type = telemetry_data
+                        .system_info
+                        .ec2_instance_type
+                        .as_deref()
+                        .unwrap_or("local");
+                    // Include benchmark size in filename if it exists
+                    let benchmark_suffix = if let Some(size) = telemetry_data.benchmark_size {
+                        format!("_size{}", size)
+                    } else {
+                        String::new()
+                    };
+
+                    let telemetry_file = format!(
+                        "{}/native_telemetry_{}_{}_{}{}{}.json",
+                        args.telemetry_output_path,
+                        package_name,
+                        instance_type,
+                        timestamp,
+                        benchmark_suffix,
+                        if result.success() {
+                            "_success"
+                        } else {
+                            "_failed"
+                        }
+                    );
+                    fs::write(
+                        &telemetry_file,
+                        serde_json::to_string_pretty(&telemetry_data)?,
+                    )?;
+                    info!("Telemetry data saved to: {}", telemetry_file);
+                }
+            }
+
+            return Ok(());
+        }
+
+        error!("Native benchmark execution failed");
+
+        // Save telemetry data even on failure
+        if let Some(telemetry_data) = telemetry.finalize() {
+            if args.enable_telemetry {
+                fs::create_dir_all(&args.telemetry_output_path)?;
+                let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S");
+                let package_name = telemetry_data
+                    .program
+                    .guest_metadata
+                    .package_name
+                    .as_deref()
+                    .unwrap_or("unknown");
+                let instance_type = telemetry_data
+                    .system_info
+                    .ec2_instance_type
+                    .as_deref()
+                    .unwrap_or("local");
+                // Include benchmark size in filename if it exists
+                let benchmark_suffix = if let Some(size) = telemetry_data.benchmark_size {
+                    format!("_size{}", size)
+                } else {
+                    String::new()
+                };
+
+                let telemetry_file = format!(
+                    "{}/native_telemetry_{}_{}_{}{}{}.json",
+                    args.telemetry_output_path,
+                    package_name,
+                    instance_type,
+                    timestamp,
+                    benchmark_suffix,
+                    if result.success() {
+                        "_success"
+                    } else {
+                        "_failed"
+                    }
+                );
+                fs::write(
+                    &telemetry_file,
+                    serde_json::to_string_pretty(&telemetry_data)?,
+                )?;
+                info!("Telemetry data saved to: {}", telemetry_file);
+            }
+        }
+
+        return Ok(());
+    } else {
+        error!("prooflab-rs directory structure incorrect please consult the README");
         return Ok(());
     }
 }

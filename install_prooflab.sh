@@ -76,6 +76,7 @@ echo "Installing zkVM toolchains"
 # Install risc0 toolchain
 curl -L https://risczero.com/install | bash
 rzup install
+rzup install risc0-groth16 || true
 cargo risczero --version
 echo "Risc0 Toolchain Installed"
 
@@ -92,7 +93,8 @@ echo "Cloning Workspaces..."
 git clone "$PROOFLAB_GIT_REPO_URL" "$PROOFLAB_DIR/prooflab-rs"
 
 # Copy the directory structure from the cloned repository to the .prooflab folder
-cp -r "$PROOFLAB_DIR/prooflab-rs/workspaces" "$PROOFLAB_DIR/."
+# Copy workspaces templates, excluding lockfiles and target dirs
+rsync -a --exclude '*/Cargo.lock' --exclude '*/target' "$PROOFLAB_DIR/prooflab-rs/workspaces" "$PROOFLAB_DIR/."
 
 # Clean up the cloned repository
 rm -rf "$PROOFLAB_DIR/prooflab-rs"

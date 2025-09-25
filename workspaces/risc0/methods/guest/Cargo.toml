@@ -9,6 +9,6 @@ edition = "2021"
 risc0-zkvm = { git = "https://github.com/risc0/risc0", features = [
     "std",
     "getrandom",
-], tag = "v1.2.0" }
+], tag = "v3.0.3" }
 
 prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package="prooflab_io" }

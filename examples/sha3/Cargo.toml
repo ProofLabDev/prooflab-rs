@@ -1,0 +1,10 @@
+[package]
+name = "sha3-example"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prooflab_io = { git = "https://github.com/prooflabdev/prooflab-rs.git", package = "prooflab_io" }
+sha3 = { version = "0.10.8", default-features = false }
+
+

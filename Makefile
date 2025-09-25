@@ -59,6 +59,9 @@ prove_risc0_regex:
 prove_risc0_sha:
 	cargo run --release -p prooflab -- prove-risc0 examples/sha
 
+prove_risc0_sha3:
+	cargo run --release -p prooflab -- prove-risc0 examples/sha3
+
 prove_risc0_tendermint:
 	cargo run --release -p prooflab -- prove-risc0 examples/tendermint
 
@@ -92,6 +95,9 @@ prove_sp1_regex:
 
 prove_sp1_sha:
 	cargo run --release -p prooflab -- prove-sp1 examples/sha
+
+prove_sp1_sha3:
+	cargo run --release -p prooflab -- prove-sp1 examples/sha3
 
 prove_sp1_tendermint:
 	cargo run --release -p prooflab -- prove-sp1 examples/tendermint
@@ -132,6 +138,9 @@ benchmark_sp1_regex:
 benchmark_sp1_sha:
 	cargo run --release -p prooflab -- prove-sp1 examples/sha --enable-telemetry
 
+benchmark_sp1_sha3:
+	cargo run --release -p prooflab -- prove-sp1 examples/sha3 --enable-telemetry
+
 benchmark_sp1_tendermint:
 	cargo run --release -p prooflab -- prove-sp1 examples/tendermint --enable-telemetry
 
@@ -171,6 +180,9 @@ benchmark_risc0_regex:
 
 benchmark_risc0_sha:
 	cargo run --release -p prooflab -- prove-risc0 examples/sha --enable-telemetry
+
+benchmark_risc0_sha3:
+	cargo run --release -p prooflab -- prove-risc0 examples/sha3 --enable-telemetry
 
 benchmark_risc0_tendermint:
 	cargo run --release -p prooflab -- prove-risc0 examples/tendermint --enable-telemetry

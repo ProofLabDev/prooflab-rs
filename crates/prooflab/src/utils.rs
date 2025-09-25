@@ -271,21 +271,31 @@ fn copy_dependencies(toml_path: &Path, guest_toml_path: &Path) -> io::Result<()>
                 });
 
             if !new_deps.is_empty() {
-                // If destination doesn't have [dependencies] section, add it
-                if !dest_content.contains("[dependencies]") {
-                    let mut dest_file = OpenOptions::new().append(true).open(guest_toml_path)?;
-                    writeln!(dest_file, "\n[dependencies]")?;
+                // Find the position to insert new dependencies
+                if let Some(deps_start) = dest_content.find("[dependencies]") {
+                    // Find the end of the dependencies section
+                    let after_deps = &dest_content[deps_start + "[dependencies]".len()..];
+                    let next_section_offset = after_deps.find("\n[").unwrap_or(after_deps.len());
+                    let insert_pos = deps_start + "[dependencies]".len() + next_section_offset;
+                    
+                    // Insert the new dependencies before the next section
+                    dest_content.insert_str(insert_pos, &format!("\n{}", new_deps));
+                } else {
+                    // No dependencies section exists, add it at the end
+                    if !dest_content.ends_with('\n') {
+                        dest_content.push('\n');
+                    }
+                    dest_content.push_str("\n[dependencies]\n");
+                    dest_content.push_str(&new_deps);
+                    dest_content.push('\n');
                 }
-
-                // Append new dependencies with proper newlines
-                let mut dest_file = OpenOptions::new().append(true).open(guest_toml_path)?;
-
-                // Add a newline before new dependencies if the file doesn't end with one
-                if !dest_content.ends_with('\n') {
-                    writeln!(dest_file)?;
-                }
-
-                writeln!(dest_file, "{}", new_deps)?;
+                
+                // Write the modified content back to the file
+                let mut dest_file = OpenOptions::new()
+                    .write(true)
+                    .truncate(true)
+                    .open(guest_toml_path)?;
+                dest_file.write_all(dest_content.as_bytes())?;
                 Ok(())
             } else {
                 Ok(())

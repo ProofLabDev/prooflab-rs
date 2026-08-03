@@ -1,0 +1,6 @@
+# Valet prebuild override. skipDetect turns off lockfile auto-install so we
+# control the toolchain ourselves: install Rust, then fetch crates. Proves a
+# repo can bring its own toolchain without an org-wide Rust base image.
+skipDetect: true
+setup:
+  - "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal && . $HOME/.cargo/env && cargo fetch"

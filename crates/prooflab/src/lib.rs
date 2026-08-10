@@ -216,12 +216,12 @@ pub async fn submit_proof_to_aligned(
         })?;
 
     let format_max_fee = format_units(max_fee, "ether").map_err(|e| {
-        error!("Unable to convert estimated proof submision price");
+        error!("Unable to convert estimated proof submission price");
         SubmitError::GenericError(e.to_string())
     })?;
 
     let format_user_balance = format_units(user_balance, "ether").map_err(|e| {
-        error!("Unable to convert estimated proof submision price");
+        error!("Unable to convert estimated proof submission price");
         SubmitError::GenericError(e.to_string())
     })?;
 
